@@ -289,3 +289,5 @@ qrcode
 ---
 
 *EarnWave — Making the internet pay you back.*
+#   e a r n w a v e  
+ 
