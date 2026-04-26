@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}FAQ - EarnWave{% endblock %}
+{% block body %}
+<nav class="earnwave-nav"><div class="container"><div class="d-flex align-items-center justify-content-between"><a href="/" class="nav-brand">Earn<span>Wave</span></a><a href="{% url 'accounts:signup' %}" class="btn-nav-cta">Join Free</a></div></div></nav>
+<div style="background:var(--black);min-height:100vh;padding:4rem 0">
+<div class="container" style="max-width:780px">
+  <div class="text-center mb-5">
+    <h1 style="font-family:var(--font-display);font-size:2.5rem;font-weight:800">Frequently Asked Questions</h1>
+    <p style="color:var(--muted)">Everything you need to know about EarnWave.</p>
+  </div>
+  <div class="accordion" id="faqAccordion">
+    {% for qa in "123456789"|make_list %}
+    <div class="ew-card mb-2" style="padding:0;overflow:hidden">
+      <button style="width:100%;text-align:left;background:none;border:none;padding:1.25rem 1.5rem;color:var(--white);font-weight:600;font-size:.95rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center" data-bs-toggle="collapse" data-bs-target="#faq{{ qa }}">
+        {% if qa == "1" %}Is EarnWave free to join?
+        {% elif qa == "2" %}How do I earn points?
+        {% elif qa == "3" %}How long does airtime redemption take?
+        {% elif qa == "4" %}What networks are supported?
+        {% elif qa == "5" %}Is there a minimum redemption amount?
+        {% elif qa == "6" %}How does the referral program work?
+        {% elif qa == "7" %}Can I have multiple accounts?
+        {% elif qa == "8" %}What are the levels and what do they unlock?
+        {% elif qa == "9" %}How do I contact support?
+        {% endif %}
+        <i class="fas fa-chevron-down" style="color:var(--muted);font-size:.8rem;transition:.3s"></i>
+      </button>
+      <div id="faq{{ qa }}" class="collapse" data-bs-parent="#faqAccordion">
+        <div style="padding:0 1.5rem 1.25rem;color:var(--muted);font-size:.9rem;line-height:1.7;border-top:1px solid var(--dark-border)">
+          {% if qa == "1" %}Yes, EarnWave is 100% free. There are no hidden charges, no subscription fees, and no credit card required. You start earning from the moment you sign up.
+          {% elif qa == "2" %}You earn points by: completing surveys (30–500 pts), answering quiz questions correctly (10–20 pts each), playing brain games (20–50 pts), watching short ads (10 pts, up to 5/day), referring friends (100 pts each), and logging in daily for streak bonuses (5–50 pts).
+          {% elif qa == "3" %}Most redemptions are processed within 24 hours. We're working on instant automated processing. You'll receive a notification when your airtime has been sent.
+          {% elif qa == "4" %}We currently support MTN, Airtel, Glo, and 9mobile. These cover all major Nigerian network providers.
+          {% elif qa == "5" %}Yes. The minimum redemption is 1,000 points, which is equivalent to &#8358;10 airtime. The conversion rate is 100 points = &#8358;1.
+          {% elif qa == "6" %}Share your unique referral link (found on your Referrals page). When someone signs up using your link, you earn 100 points and they earn 50 bonus points. There's no cap on referrals!
+          {% elif qa == "7" %}No. Each person is allowed one account. Multiple accounts are considered fraud and will result in permanent suspension of all accounts involved.
+          {% elif qa == "8" %}Levels: Bronze (0 pts), Silver (1,000 pts), Gold (5,000 pts), Platinum (15,000 pts). Higher levels unlock exclusive challenges, higher earning rates on certain activities, and special badges.
+          {% elif qa == "9" %}Email us at <a href="mailto:support@earnwave.ng" style="color:var(--blue-light)">support@earnwave.ng</a> or use the contact form. We respond within 24–48 hours on business days.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="text-center mt-5">
+    <p style="color:var(--muted)">Still have questions?</p>
+    <a href="{% url 'core:contact' %}" class="btn-outline-ew" style="text-decoration:none"><i class="fas fa-envelope"></i> Contact Us</a>
+  </div>
+</div>
+</div>
+{% endblock %}

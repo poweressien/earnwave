@@ -1,0 +1,133 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}{{ quiz.title }} - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div class="quiz-arena">
+  <div class="page-header">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <h1 class="page-title">{{ quiz.title }}</h1>
+        <p class="page-subtitle">{{ quiz.category.name }} · {{ quiz.get_difficulty_display }}</p>
+      </div>
+      <div class="quiz-timer" id="timer">{{ quiz.time_limit_seconds }}</div>
+    </div>
+    <div class="ew-progress mt-3"><div class="ew-progress-fill" id="questionProgress" style="width:0%"></div></div>
+  </div>
+
+  <div id="quizContainer">
+    {% for question in questions %}
+    <div class="quiz-question" id="question_{{ forloop.counter }}" style="{% if not forloop.first %}display:none{% endif %}">
+      <div style="font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:.75rem">Question {{ forloop.counter }} of {{ questions|length }}</div>
+      <p class="quiz-question-text">{{ question.text }}</p>
+      <div class="mt-3" data-question="{{ question.id }}" data-correct="{{ question.correct_answer }}">
+        <div class="quiz-option" data-choice="A" onclick="selectAnswer(this, '{{ question.id }}', 'A')">
+          <div class="option-label">A</div> {{ question.option_a }}
+        </div>
+        <div class="quiz-option" data-choice="B" onclick="selectAnswer(this, '{{ question.id }}', 'B')">
+          <div class="option-label">B</div> {{ question.option_b }}
+        </div>
+        <div class="quiz-option" data-choice="C" onclick="selectAnswer(this, '{{ question.id }}', 'C')">
+          <div class="option-label">C</div> {{ question.option_c }}
+        </div>
+        <div class="quiz-option" data-choice="D" onclick="selectAnswer(this, '{{ question.id }}', 'D')">
+          <div class="option-label">D</div> {{ question.option_d }}
+        </div>
+      </div>
+      {% if question.explanation %}
+      <div class="mt-2 p-3 rounded-ew" id="exp_{{ question.id }}" style="display:none;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);font-size:.875rem;color:var(--muted)">
+        <strong style="color:var(--blue-light)">💡 Explanation:</strong> {{ question.explanation }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div id="quizResult" style="display:none;text-align:center;padding:3rem 1rem">
+    <div style="font-size:4rem;margin-bottom:1rem" id="resultEmoji">🎉</div>
+    <h2 style="font-family:var(--font-display);font-size:2rem;font-weight:800" id="resultTitle">Quiz Complete!</h2>
+    <p style="color:var(--muted);margin:.5rem 0 2rem" id="resultText"></p>
+    <div class="stat-card blue d-inline-block" style="min-width:200px;margin-bottom:1.5rem">
+      <div class="stat-label">Points Earned</div>
+      <div class="stat-number" id="resultPoints">0</div>
+    </div>
+    <br>
+    <a href="{% url 'quizzes:list' %}" class="btn-primary-ew" style="text-decoration:none">
+      <i class="fas fa-redo"></i> Play Another Quiz
+    </a>
+  </div>
+
+  <div id="quizNav" class="d-flex justify-content-between mt-3">
+    <button id="prevBtn" class="btn-outline-ew btn-sm-ew" onclick="prevQ()" style="display:none"><i class="fas fa-arrow-left"></i> Previous</button>
+    <button id="nextBtn" class="btn-primary-ew btn-sm-ew ms-auto" onclick="nextQ()">Next <i class="fas fa-arrow-right"></i></button>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const questions = {{ questions|length }};
+const timeLimit = {{ quiz.time_limit_seconds }};
+const attemptId = '{{ attempt.id }}';
+let current = 1;
+let answers = {};
+let startTime = Date.now();
+let timeLeft = timeLimit;
+let timer;
+
+function startTimer() {
+  timer = setInterval(() => {
+    timeLeft--;
+    const el = document.getElementById('timer');
+    el.textContent = timeLeft;
+    if (timeLeft <= 10) el.classList.add('danger');
+    if (timeLeft <= 0) { clearInterval(timer); nextQ(); }
+  }, 1000);
+}
+
+function selectAnswer(el, qId, choice) {
+  const container = el.parentElement;
+  container.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[qId] = choice;
+  const expEl = document.getElementById('exp_' + qId);
+  if (expEl) expEl.style.display = 'block';
+}
+
+function showQ(n) {
+  document.querySelectorAll('[id^="question_"]').forEach(q => q.style.display = 'none');
+  document.getElementById('question_' + n).style.display = 'block';
+  document.getElementById('questionProgress').style.width = ((n-1)/questions*100) + '%';
+  document.getElementById('prevBtn').style.display = n > 1 ? 'inline-flex' : 'none';
+  document.getElementById('nextBtn').textContent = n === questions ? 'Submit Quiz ✓' : 'Next →';
+  clearInterval(timer); timeLeft = timeLimit;
+  document.getElementById('timer').classList.remove('danger');
+  document.getElementById('timer').textContent = timeLeft;
+  startTimer();
+}
+
+function nextQ() {
+  if (current < questions) { current++; showQ(current); }
+  else { clearInterval(timer); submitQuiz(); }
+}
+function prevQ() {
+  if (current > 1) { current--; showQ(current); }
+}
+
+function submitQuiz() {
+  document.getElementById('quizContainer').style.display = 'none';
+  document.getElementById('quizNav').style.display = 'none';
+  const timeTaken = Math.round((Date.now() - startTime) / 1000);
+  fetch('{% url "quizzes:submit" attempt_id=attempt.id %}', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-CSRFToken':getCsrf()},
+    body: JSON.stringify({answers, time_taken: timeTaken})
+  }).then(r=>r.json()).then(data=>{
+    document.getElementById('quizResult').style.display = 'block';
+    document.getElementById('resultPoints').textContent = '+' + data.points + ' pts';
+    document.getElementById('resultTitle').textContent = data.score >= 80 ? '🎉 Excellent!' : data.score >= 50 ? '👍 Good Job!' : '💪 Keep Trying!';
+    document.getElementById('resultText').textContent = `You got ${data.correct} out of ${data.total} correct (${data.score}%)`;
+    document.getElementById('resultEmoji').textContent = data.score >= 80 ? '🏆' : data.score >= 50 ? '🎯' : '📚';
+  });
+}
+
+startTimer();
+</script>
+{% endblock %}

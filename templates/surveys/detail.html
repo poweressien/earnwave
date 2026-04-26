@@ -1,0 +1,80 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}{{ survey.title }} - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'surveys:list' %}" class="btn-outline-ew btn-sm-ew" style="text-decoration:none"><i class="fas fa-arrow-left"></i></a>
+    <div>
+      <h1 class="page-title">{{ survey.title }}</h1>
+      <p class="page-subtitle">{{ survey.questions.count }} questions · ~{{ survey.estimated_minutes }} minutes · <strong class="text-blue">+{{ survey.points_reward }} points</strong></p>
+    </div>
+  </div>
+</div>
+<div class="ew-card" style="max-width:720px">
+  <form method="post" id="surveyForm">
+    {% csrf_token %}
+    {% for question in questions %}
+    <div class="mb-4 pb-4" style="border-bottom:1px solid var(--dark-border)" id="q{{ forloop.counter }}">
+      <div class="d-flex align-items-start gap-2 mb-3">
+        <span style="background:var(--blue);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">{{ forloop.counter }}</span>
+        <p style="color:var(--white);font-weight:600;margin:0;line-height:1.5">{{ question.text }}</p>
+      </div>
+      {% if question.question_type == 'multiple_choice' %}
+        {% for option in question.options.all %}
+        <label class="quiz-option" style="cursor:pointer;margin-bottom:.5rem">
+          <input type="radio" name="question_{{ question.id }}" value="{{ option.id }}" style="display:none" {% if question.is_required %}required{% endif %}>
+          <div class="option-label">{{ forloop.counter }}</div>
+          {{ option.text }}
+        </label>
+        {% endfor %}
+      {% elif question.question_type == 'text' %}
+        <textarea name="question_{{ question.id }}" class="ew-form-control" rows="3" placeholder="Your answer..." {% if question.is_required %}required{% endif %}></textarea>
+      {% elif question.question_type == 'rating' %}
+        <div class="d-flex gap-2 flex-wrap">
+          {% for i in "12345"|make_list %}
+          <label style="cursor:pointer">
+            <input type="radio" name="question_{{ question.id }}" value="{{ i }}" style="display:none">
+            <div style="width:48px;height:48px;border-radius:10px;background:var(--dark-card);border:2px solid var(--dark-border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;transition:var(--transition);cursor:pointer" class="rating-btn">{{ i }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      {% elif question.question_type == 'boolean' %}
+        <div class="d-flex gap-3">
+          <label class="quiz-option" style="flex:1;cursor:pointer">
+            <input type="radio" name="question_{{ question.id }}" value="yes" style="display:none">
+            <div class="option-label">👍</div> Yes
+          </label>
+          <label class="quiz-option" style="flex:1;cursor:pointer">
+            <input type="radio" name="question_{{ question.id }}" value="no" style="display:none">
+            <div class="option-label">👎</div> No
+          </label>
+        </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <div class="d-flex align-items-center justify-content-between mt-2">
+      <span style="color:var(--muted);font-size:.875rem">{{ questions|length }} questions · Earn <strong class="text-blue">{{ survey.points_reward }} pts</strong></span>
+      <button type="submit" class="btn-primary-ew"><i class="fas fa-paper-plane"></i> Submit Survey</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Highlight selected radio options
+document.querySelectorAll('.quiz-option input[type=radio]').forEach(input => {
+  input.addEventListener('change', () => {
+    document.querySelectorAll(`input[name="${input.name}"]`).forEach(i => i.closest('.quiz-option').classList.remove('selected'));
+    input.closest('.quiz-option').classList.add('selected');
+  });
+});
+document.querySelectorAll('.rating-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = btn.closest('label').querySelector('input');
+    const name = input.name;
+    document.querySelectorAll(`input[name="${name}"]`).forEach(i => i.closest('label').querySelector('.rating-btn').style.borderColor = 'var(--dark-border)');
+    btn.style.borderColor = 'var(--blue)'; btn.style.background = 'rgba(37,99,235,.15)'; btn.style.color = 'var(--blue-light)';
+  });
+});
+</script>
+{% endblock %}

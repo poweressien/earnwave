@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}EarnWave - Earn Airtime. Play. Win. Repeat.{% endblock %}
+{% block body %}
+
+<!-- NAVBAR -->
+<nav class="earnwave-nav">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between">
+      <a href="/" class="nav-brand">Earn<span>Wave</span></a>
+      <div class="d-none d-md-flex align-items-center gap-1">
+        <a href="{% url 'core:how_it_works' %}" class="nav-link-item">How It Works</a>
+        <a href="{% url 'core:faq' %}" class="nav-link-item">FAQ</a>
+        <a href="{% url 'core:about' %}" class="nav-link-item">About</a>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'accounts:login' %}" class="nav-link-item d-none d-md-block">Sign In</a>
+        <a href="{% url 'accounts:signup' %}" class="btn-nav-cta">Get Started Free</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-section">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+  <div class="container py-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-badge">
+          <i class="fas fa-bolt"></i> Nigeria's #1 Rewards Platform
+        </div>
+        <h1 class="hero-title">
+          Earn Real <span class="accent">Airtime</span><br>
+          by Playing &amp; Learning
+        </h1>
+        <p class="hero-subtitle">
+          Complete surveys, ace quizzes, solve puzzles &mdash; and convert your points to MTN, Airtel, Glo, or 9mobile airtime. Instantly.
+        </p>
+        <div class="hero-actions">
+          <a href="{% url 'accounts:signup' %}" class="btn-primary-ew" style="font-size:1rem;padding:.85rem 2rem">
+            <i class="fas fa-rocket"></i> Start Earning Free
+          </a>
+          <a href="{% url 'core:how_it_works' %}" class="btn-outline-ew" style="font-size:1rem;padding:.85rem 2rem">
+            <i class="fas fa-play-circle"></i> See How It Works
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat-item">
+            <div class="hero-stat-num">{{ stats.users|default:"0" }}+</div>
+            <div class="hero-stat-label">Active Users</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="hero-stat-num">&#8358;500k+</div>
+            <div class="hero-stat-label">Airtime Paid Out</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="hero-stat-num">{{ stats.quizzes|default:"0" }}+</div>
+            <div class="hero-stat-label">Daily Tasks</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 d-none d-lg-block">
+        <div class="position-relative" style="height:460px">
+          <div class="mock-card featured" style="position:absolute;top:20px;right:20px;animation:float 5s ease-in-out infinite">
+            <div style="font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem">Points Balance</div>
+            <div class="mock-points-big">12,450</div>
+            <div style="color:var(--muted);font-size:.8rem">&#8776; &#8358;124.50 airtime</div>
+            <div class="ew-progress mt-2"><div class="ew-progress-fill" style="width:65%"></div></div>
+          </div>
+          <div class="mock-card" style="position:absolute;top:160px;left:0;animation:float 6s ease-in-out infinite;animation-delay:-1.5s;min-width:200px">
+            <div style="font-size:.7rem;color:var(--muted);font-weight:600;margin-bottom:.5rem">DAILY QUIZ</div>
+            <div style="font-size:.9rem;font-weight:600;color:var(--white);margin-bottom:.75rem">What is Nigeria's capital?</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <div style="background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.3);border-radius:8px;padding:6px;font-size:.75rem;text-align:center;color:var(--blue-light)">Abuja &#10003;</div>
+              <div style="background:var(--dark-border);border-radius:8px;padding:6px;font-size:.75rem;text-align:center;color:var(--muted)">Lagos</div>
+            </div>
+          </div>
+          <div class="mock-card" style="position:absolute;bottom:20px;right:40px;animation:float 7s ease-in-out infinite;animation-delay:-3s;min-width:190px">
+            <div style="font-size:.7rem;color:var(--muted);font-weight:600;margin-bottom:.5rem">AIRTIME SENT &#9989;</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:1.75rem">&#128241;</span>
+              <div>
+                <div style="font-weight:700;color:var(--success)">&#8358;500 MTN</div>
+                <div style="font-size:.75rem;color:var(--muted)">to 0803&bull;&bull;&bull;4521</div>
+              </div>
+            </div>
+          </div>
+          <div class="mock-card" style="position:absolute;top:280px;left:80px;animation:float 5.5s ease-in-out infinite;animation-delay:-2s;min-width:170px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:1.5rem">&#128293;</span>
+              <div>
+                <div style="font-weight:700;font-size:1.1rem">14 Day</div>
+                <div style="font-size:.75rem;color:var(--gold)">Login Streak!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NETWORK BADGES -->
+<section style="background:var(--off-black);border-top:1px solid var(--dark-border);border-bottom:1px solid var(--dark-border);padding:1.5rem 0">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-center flex-wrap gap-3">
+      <span style="font-size:.8rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-right:.5rem">Works with:</span>
+      <span class="network-pill mtn">&#128225; MTN</span>
+      <span class="network-pill airtel">&#128225; Airtel</span>
+      <span class="network-pill glo">&#128225; Glo</span>
+      <span class="network-pill nmobile">&#128225; 9mobile</span>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section-pad-lg">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-5">
+        <div class="section-label"><i class="fas fa-map"></i> Simple Process</div>
+        <h2 class="section-title">Start Earning in<br>3 Easy Steps</h2>
+        <p class="section-sub mb-4">No experience needed. Just sign up, complete tasks, and redeem airtime anytime.</p>
+        <a href="{% url 'accounts:signup' %}" class="btn-primary-ew">
+          <i class="fas fa-arrow-right"></i> Get Started Now
+        </a>
+      </div>
+      <div class="col-lg-7">
+        <div class="how-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Create Your Free Account</h4>
+            <p>Sign up in 30 seconds with your email or phone. Get 50 welcome points immediately.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Complete Tasks &amp; Earn Points</h4>
+            <p>Take surveys, play trivia quizzes, solve brain games, watch short ads, or refer friends. Every action earns you points.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Redeem for Airtime</h4>
+            <p>Convert your points to MTN, Airtel, Glo, or 9mobile airtime. Minimum &#8358;10 sent directly to your number.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section-pad" style="background:var(--off-black)">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label"><i class="fas fa-star"></i> Everything You Need</div>
+      <h2 class="section-title">A Full Ecosystem<br>to Earn &amp; Have Fun</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <div class="feature-icon">&#128203;</div>
+          <h3 class="feature-title">Paid Surveys</h3>
+          <p class="feature-text">Earn 30&ndash;500 points per survey. Brands pay you to share your opinion. Fast, simple questionnaires.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <div class="feature-icon">&#129504;</div>
+          <h3 class="feature-title">Trivia Quizzes</h3>
+          <p class="feature-text">Test your knowledge across Science, History, Tech, JAMB-style questions. Daily challenges with bonus rewards.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <div class="feature-icon">&#127918;</div>
+          <h3 class="feature-title">Brain Games</h3>
+          <p class="feature-text">Memory match, logic puzzles, math challenges. Fun mini-games that earn you points every session.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <div class="feature-icon">&#128250;</div>
+          <h3 class="feature-title">Watch Ads</h3>
+          <p class="feature-text">Watch 5 short ads daily and earn bonus points. Takes just seconds per ad. Simple, no-effort earnings.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <div class="feature-icon">&#128101;</div>
+          <h3 class="feature-title">Refer &amp; Earn</h3>
+          <p class="feature-text">Share your unique link and earn 100 points per referral. Your friend gets 50 bonus points too.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <div class="feature-icon">&#127942;</div>
+          <h3 class="feature-title">Levels &amp; Badges</h3>
+          <p class="feature-text">Level up from Bronze to Platinum. Unlock exclusive badges, higher earnings, and VIP challenges.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="section-pad">
+  <div class="container">
+    <div style="background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(124,58,237,.15));border:1px solid rgba(37,99,235,.25);border-radius:var(--radius-xl);padding:4rem 2rem;text-align:center">
+      <h2 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-.02em;margin-bottom:1rem">
+        Ready to Start Earning? &#128640;
+      </h2>
+      <p style="color:var(--muted);font-size:1.05rem;max-width:480px;margin:0 auto 2rem">
+        Join thousands of Nigerians earning free airtime every day. Completely free. No credit card needed.
+      </p>
+      <a href="{% url 'accounts:signup' %}" class="btn-primary-ew" style="font-size:1.05rem;padding:1rem 2.5rem">
+        <i class="fas fa-rocket"></i> Create Free Account Now
+      </a>
+      <p style="color:var(--muted);font-size:.8rem;margin-top:1.25rem">
+        &#128274; 100% Free &middot; No Hidden Charges &middot; Instant Airtime
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="ew-footer">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="footer-brand">Earn<span>Wave</span></div>
+        <div class="footer-tagline">Earn Airtime. Play. Win. Repeat.</div>
+        <p class="mt-2" style="color:var(--muted);font-size:.85rem;max-width:280px">Nigeria's most rewarding platform. Earn airtime for things you already love doing.</p>
+      </div>
+      <div class="col-6 col-lg-2 offset-lg-2">
+        <div class="footer-section-title">Platform</div>
+        <a href="{% url 'core:how_it_works' %}" class="footer-link">How It Works</a>
+        <a href="{% url 'core:faq' %}" class="footer-link">FAQ</a>
+        <a href="{% url 'core:about' %}" class="footer-link">About Us</a>
+        <a href="{% url 'core:contact' %}" class="footer-link">Contact</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="footer-section-title">Legal</div>
+        <a href="{% url 'core:privacy' %}" class="footer-link">Privacy Policy</a>
+        <a href="{% url 'core:terms' %}" class="footer-link">Terms of Service</a>
+      </div>
+      <div class="col-lg-2">
+        <div class="footer-section-title">Account</div>
+        <a href="{% url 'accounts:signup' %}" class="footer-link">Sign Up</a>
+        <a href="{% url 'accounts:login' %}" class="footer-link">Sign In</a>
+      </div>
+    </div>
+    <div class="footer-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="footer-bottom-text">&copy; 2024 EarnWave. Made with &#10084;&#65039; for Nigeria.</div>
+      <div class="footer-bottom-text">&#127463;&#127468; Proudly Nigerian</div>
+    </div>
+  </div>
+</footer>
+{% endblock %}

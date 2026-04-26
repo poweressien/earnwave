@@ -1,0 +1,77 @@
+{% extends "dashboard_base.html" %}
+{% load humanize %}
+{% block title %}Redeem Airtime{% endblock %}
+{% block content %}
+<div class="page-header"><h1>📱 Redeem Airtime</h1><p>Convert your points to free airtime</p></div>
+<div class="grid-2">
+  <div>
+    <div class="points-hero mb-3">
+      <div class="points-label">Available Balance</div>
+      <div class="points-balance">{{ balance|intcomma }}</div>
+      <div class="text-muted text-sm mt-1">≈ ₦{{ max_airtime }} max airtime</div>
+    </div>
+    <div class="card">
+      <div class="card-header-styled"><h3>Request Airtime Redemption</h3></div>
+      <form method="post" action="{% url "rewards:redeem" %}">{% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Select Network</label>
+          <div class="flex gap-2 flex-wrap">
+            {% for net in networks %}
+            <label class="network-btn">
+              <input type="radio" name="network" value="{{ net }}" style="display:none;" required>
+              <span style="font-size:1.5rem;">{% if net == "MTN" %}🟡{% elif net == "Airtel" %}🔴{% elif net == "Glo" %}🟢{% else %}🟠{% endif %}</span>
+              <span class="network-name">{{ net }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <div class="input-icon-wrap">
+            <i class="fas fa-mobile-alt input-icon"></i>
+            <input type="tel" name="phone_number" class="form-control" placeholder="08012345678" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Airtime Amount (₦)</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon" style="left:.75rem;">₦</span>
+            <input type="number" name="airtime_amount" class="form-control" style="padding-left:2.5rem;" min="10" max="{{ max_airtime }}" placeholder="100" id="amtInput" required>
+          </div>
+          <div class="text-xs text-muted mt-1">Points needed: <span id="ptsNeeded">0</span> pts (Min: {{ min_pts }} pts)</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full btn-lg"><i class="fas fa-coins"></i> Request Airtime</button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header-styled"><h3>Redemption History</h3></div>
+    {% for r in redemptions %}
+    <div style="padding:.75rem 0;border-bottom:1px solid var(--border);">
+      <div class="flex justify-between items-center">
+        <div>
+          <div class="font-bold text-sm">₦{{ r.airtime_amount }} {{ r.network }}</div>
+          <div class="text-xs text-muted">{{ r.phone_number }} · {{ r.created_at|date:"M d, Y" }}</div>
+        </div>
+        <span class="badge-pill {% if r.status == "completed" %}badge-green{% elif r.status == "failed" %}badge-red{% else %}badge-blue{% endif %}">{{ r.status|title }}</span>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state"><div class="empty-icon">📱</div><p class="text-sm">No redemptions yet</p></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+document.querySelectorAll("input[type=radio][name=network]").forEach(r=>{
+  r.addEventListener("change",function(){
+    document.querySelectorAll(".network-btn").forEach(b=>b.classList.remove("selected"));
+    this.closest(".network-btn").classList.add("selected");
+  });
+});
+document.getElementById("amtInput").addEventListener("input",function(){
+  document.getElementById("ptsNeeded").textContent=(this.value*100).toLocaleString();
+});
+</script>
+{% endblock %}

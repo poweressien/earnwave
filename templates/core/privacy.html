@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Privacy Policy - EarnWave{% endblock %}
+{% block body %}
+<nav class="earnwave-nav"><div class="container"><div class="d-flex align-items-center justify-content-between"><a href="/" class="nav-brand">Earn<span>Wave</span></a><a href="{% url 'accounts:login' %}" class="btn-nav-cta">Sign In</a></div></div></nav>
+<div style="background:var(--black);min-height:100vh;padding:4rem 0">
+<div class="container" style="max-width:780px">
+  <h1 style="font-family:var(--font-display);font-size:2rem;font-weight:800;margin-bottom:.5rem">Privacy Policy</h1>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:2rem">Last updated: January 2024</p>
+  <div style="color:var(--muted);line-height:1.85;font-size:.95rem">
+    <div class="ew-card mb-3">
+      <h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">1. Information We Collect</h4>
+      <p>We collect information you provide directly: name, email address, phone number, and profile information. We also collect usage data including tasks completed, points earned, and device information for fraud prevention.</p>
+    </div>
+    <div class="ew-card mb-3">
+      <h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">2. How We Use Your Information</h4>
+      <p>Your information is used to: operate your account and track points, process airtime redemptions, send notifications about your activity, improve platform features, prevent fraud and abuse, and comply with legal obligations. We do not sell your personal data to third parties.</p>
+    </div>
+    <div class="ew-card mb-3">
+      <h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">3. Survey Data</h4>
+      <p>When you complete sponsored surveys, your anonymized responses are shared with the sponsoring brand. Your personal identity is never shared with survey sponsors without explicit consent.</p>
+    </div>
+    <div class="ew-card mb-3">
+      <h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">4. Data Security</h4>
+      <p>We use industry-standard encryption and security practices. Passwords are hashed and never stored in plain text. We regularly audit our systems for security vulnerabilities.</p>
+    </div>
+    <div class="ew-card mb-3">
+      <h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">5. Your Rights</h4>
+      <p>You have the right to access, correct, or delete your personal data at any time. Contact us at privacy@earnwave.ng to exercise these rights. Account deletion requests are processed within 30 days.</p>
+    </div>
+    <div class="ew-card">
+      <h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">6. Contact</h4>
+      <p>For privacy concerns: <a href="mailto:privacy@earnwave.ng" style="color:var(--blue-light)">privacy@earnwave.ng</a></p>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

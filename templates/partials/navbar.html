@@ -1,0 +1,79 @@
+{% load static %}
+<nav class="earnwave-nav" id="mainNav">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between gap-3">
+      <a href="{% url 'core:landing' %}" class="nav-brand">Earn<span>Wave</span></a>
+
+      <!-- Desktop Links -->
+      <div class="d-none d-lg-flex align-items-center gap-1">
+        <a href="{% url 'core:how_it_works' %}" class="nav-link-item">How It Works</a>
+        <a href="{% url 'core:faq' %}" class="nav-link-item">FAQ</a>
+        <a href="{% url 'core:about' %}" class="nav-link-item">About</a>
+        <a href="{% url 'core:contact' %}" class="nav-link-item">Contact</a>
+      </div>
+
+      <!-- Right side -->
+      <div class="d-flex align-items-center gap-2">
+        {% if user.is_authenticated %}
+        <a href="{% url 'dashboard:notifications' %}" class="nav-link-item d-none d-md-flex align-items-center" style="position:relative;padding:.4rem .6rem !important">
+          <i class="fas fa-bell"></i>
+          {% if unread_notification_count > 0 %}
+          <span style="position:absolute;top:2px;right:2px;background:var(--danger);color:white;font-size:.6rem;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">{{ unread_notification_count }}</span>
+          {% endif %}
+        </a>
+        <a href="{% url 'rewards:home' %}" class="d-none d-md-flex align-items-center gap-1" style="background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.25);color:var(--blue-light);padding:5px 12px;border-radius:50px;font-size:.8rem;font-weight:700;text-decoration:none">
+          <i class="fas fa-bolt" style="font-size:.7rem"></i> {{ user.points_balance|floatformat:0 }} pts
+        </a>
+        <div class="dropdown">
+          <button class="dropdown-toggle" data-bs-toggle="dropdown" style="background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:8px">
+            <img src="{{ user.profile.get_avatar_url }}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--blue)" alt="me">
+            <span class="d-none d-md-inline" style="color:var(--white);font-size:.875rem;font-weight:600">{{ user.first_name }}</span>
+            <i class="fas fa-chevron-down" style="color:var(--muted);font-size:.65rem"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end ew-dropdown">
+            <li class="px-3 py-2">
+              <div style="font-size:.8rem;font-weight:700;color:var(--white)">{{ user.get_full_name }}</div>
+              <div style="font-size:.72rem;color:var(--muted)">{{ user.email }}</div>
+              <span class="level-badge level-{{ user.level|lower }} mt-1" style="font-size:.65rem">{{ user.level }}</span>
+            </li>
+            <li><hr class="ew-dropdown-divider"></li>
+            <li><a class="ew-dropdown-item" href="{% url 'dashboard:home' %}"><i class="fas fa-th-large"></i> Dashboard</a></li>
+            <li><a class="ew-dropdown-item" href="{% url 'accounts:profile' %}"><i class="fas fa-user"></i> My Profile</a></li>
+            <li><a class="ew-dropdown-item" href="{% url 'rewards:home' %}"><i class="fas fa-coins"></i> Points & Airtime</a></li>
+            <li><a class="ew-dropdown-item" href="{% url 'referrals:home' %}"><i class="fas fa-users"></i> Referrals</a></li>
+            <li><a class="ew-dropdown-item" href="{% url 'rewards:spin' %}" style="color:var(--gold)"><i class="fas fa-dharmachakra"></i> Daily Spin &#127881;</a></li>
+            <li><a class="ew-dropdown-item" href="{% url 'rewards:daily_challenge' %}"><i class="fas fa-fire"></i> Daily Challenges</a></li>
+            <li><hr class="ew-dropdown-divider"></li>
+            <li><a class="ew-dropdown-item" href="{% url 'accounts:change_password' %}"><i class="fas fa-lock"></i> Change Password</a></li>
+            <li><a class="ew-dropdown-item" href="{% url 'accounts:logout' %}" style="color:var(--danger)"><i class="fas fa-sign-out-alt"></i> Sign Out</a></li>
+          </ul>
+        </div>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="nav-link-item d-none d-md-block">Sign In</a>
+        <a href="{% url 'accounts:signup' %}" class="btn-nav-cta">Get Started Free</a>
+        {% endif %}
+        <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="d-lg-none" style="background:var(--dark-card);border:1px solid var(--dark-border);color:var(--white);width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <i class="fas fa-bars" id="hamIcon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile dropdown -->
+    <div id="mobileMenu" style="display:none;padding:1rem 0 .5rem;border-top:1px solid var(--dark-border);margin-top:.75rem">
+      <a href="{% url 'core:how_it_works' %}" class="nav-link-item d-block mb-1">How It Works</a>
+      <a href="{% url 'core:faq' %}" class="nav-link-item d-block mb-1">FAQ</a>
+      <a href="{% url 'core:about' %}" class="nav-link-item d-block mb-1">About</a>
+      <a href="{% url 'core:contact' %}" class="nav-link-item d-block mb-2">Contact</a>
+      {% if user.is_authenticated %}
+      <hr style="border-color:var(--dark-border)">
+      <a href="{% url 'dashboard:home' %}" class="nav-link-item d-block mb-1"><i class="fas fa-th-large me-2"></i>Dashboard</a>
+      <a href="{% url 'rewards:spin' %}" class="nav-link-item d-block mb-1" style="color:var(--gold)"><i class="fas fa-dharmachakra me-2"></i>Daily Spin</a>
+      <a href="{% url 'accounts:logout' %}" class="nav-link-item d-block" style="color:var(--danger)"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a>
+      {% else %}
+      <hr style="border-color:var(--dark-border)">
+      <a href="{% url 'accounts:login' %}" class="nav-link-item d-block mb-1">Sign In</a>
+      <a href="{% url 'accounts:signup' %}" class="btn-nav-cta d-block text-center">Get Started Free</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>

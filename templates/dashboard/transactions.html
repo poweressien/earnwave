@@ -1,0 +1,27 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Transaction History - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div class="page-header"><h1 class="page-title">⚡ Transaction History</h1><p class="page-subtitle">All your points activity.</p></div>
+<div class="ew-card">
+  <div style="overflow-x:auto">
+    <table class="ew-table">
+      <thead><tr><th>Description</th><th>Source</th><th>Points</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr>
+          <td style="max-width:300px">{{ tx.description }}</td>
+          <td><span style="background:rgba(255,255,255,.08);padding:3px 10px;border-radius:50px;font-size:.75rem;font-weight:600">{{ tx.get_source_display }}</span></td>
+          <td class="{% if tx.transaction_type == 'credit' %}credit-badge{% else %}debit-badge{% endif %}">
+            {% if tx.transaction_type == 'credit' %}+{% else %}-{% endif %}{{ tx.points|intcomma }} pts
+          </td>
+          <td style="font-size:.8rem;color:var(--muted)">{{ tx.created_at|date:"d M Y, g:i a" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;padding:3rem;color:var(--muted)">No transactions yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

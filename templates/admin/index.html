@@ -1,0 +1,146 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+{% if analytics %}
+<style>
+.ew-admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.ew-stat-box { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; color: #f8fafc; }
+.ew-stat-box.blue { border-left: 4px solid #3b82f6; }
+.ew-stat-box.green { border-left: 4px solid #10b981; }
+.ew-stat-box.gold { border-left: 4px solid #f59e0b; }
+.ew-stat-box.red { border-left: 4px solid #ef4444; }
+.ew-stat-box.purple { border-left: 4px solid #8b5cf6; }
+.ew-stat-num { font-size: 2rem; font-weight: 800; line-height: 1; margin: 0.35rem 0; }
+.ew-stat-lbl { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.ew-stat-sub { font-size: 0.78rem; color: #64748b; margin-top: 0.25rem; }
+.ew-section { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+.ew-section h3 { color: #f8fafc; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #334155; }
+.ew-table { width: 100%; border-collapse: collapse; }
+.ew-table th { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; padding: 0.5rem 0.75rem; text-align: left; }
+.ew-table td { padding: 0.65rem 0.75rem; border-top: 1px solid #1e293b; font-size: 0.875rem; color: #cbd5e1; }
+.ew-table tr:hover td { background: rgba(255,255,255,0.03); }
+.status-badge { padding: 2px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; }
+.status-pending { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.status-completed { background: rgba(16,185,129,0.15); color: #10b981; }
+.status-failed { background: rgba(239,68,68,0.15); color: #ef4444; }
+.alert-banner { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; color: #fca5a5; display: flex; align-items: center; gap: 10px; }
+</style>
+
+{% if analytics.pending_redemptions > 0 %}
+<div class="alert-banner">
+  <span style="font-size:1.25rem">⚠️</span>
+  <div>
+    <strong>{{ analytics.pending_redemptions }} Pending Airtime Redemption{{ analytics.pending_redemptions|pluralize }}</strong>
+    &nbsp;—&nbsp; <a href="/admin/rewards/airtimeredemption/?status=pending" style="color:#93c5fd">Review Now →</a>
+  </div>
+</div>
+{% endif %}
+
+<h2 style="color:#f8fafc;font-size:1.1rem;margin-bottom:1rem;font-weight:700">📊 Platform Overview</h2>
+<div class="ew-admin-grid">
+  <div class="ew-stat-box blue">
+    <div class="ew-stat-lbl">Total Users</div>
+    <div class="ew-stat-num">{{ analytics.total_users }}</div>
+    <div class="ew-stat-sub">+{{ analytics.new_users_today }} today · +{{ analytics.new_users_week }} this week</div>
+  </div>
+  <div class="ew-stat-box green">
+    <div class="ew-stat-lbl">Points Issued</div>
+    <div class="ew-stat-num">{{ analytics.total_points_issued|default:"0" }}</div>
+    <div class="ew-stat-sub">+{{ analytics.points_today }} today</div>
+  </div>
+  <div class="ew-stat-box gold">
+    <div class="ew-stat-lbl">Airtime Paid Out</div>
+    <div class="ew-stat-num">₦{{ analytics.total_airtime_paid|default:"0" }}</div>
+    <div class="ew-stat-sub">{{ analytics.redemptions_today }} redemptions today</div>
+  </div>
+  <div class="ew-stat-box red">
+    <div class="ew-stat-lbl">Pending Redemptions</div>
+    <div class="ew-stat-num">{{ analytics.pending_redemptions }}</div>
+    <div class="ew-stat-sub"><a href="/admin/rewards/airtimeredemption/?status=pending" style="color:#f87171">Review →</a></div>
+  </div>
+  <div class="ew-stat-box purple">
+    <div class="ew-stat-lbl">Surveys Done</div>
+    <div class="ew-stat-num">{{ analytics.surveys_completed }}</div>
+    <div class="ew-stat-sub">{{ analytics.quizzes_completed }} quizzes completed</div>
+  </div>
+  <div class="ew-stat-box blue">
+    <div class="ew-stat-lbl">Referrals</div>
+    <div class="ew-stat-num">{{ analytics.referrals_total }}</div>
+    <div class="ew-stat-sub">{{ analytics.referrals_rewarded }} rewarded</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+  <!-- Pending Redemptions -->
+  <div class="ew-section">
+    <h3>⏳ Pending Airtime Redemptions</h3>
+    {% if analytics.pending_redemption_list %}
+    <table class="ew-table">
+      <thead><tr><th>User</th><th>Network</th><th>Amount</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for r in analytics.pending_redemption_list %}
+        <tr>
+          <td>{{ r.user.get_full_name }}<br><small style="color:#475569">{{ r.phone_number }}</small></td>
+          <td>{{ r.network }}</td>
+          <td style="color:#34d399;font-weight:700">₦{{ r.airtime_amount }}</td>
+          <td><a href="/admin/rewards/airtimeredemption/{{ r.id }}/change/" style="color:#60a5fa;font-size:.8rem">Process</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#475569;text-align:center;padding:1rem">No pending redemptions ✅</p>
+    {% endif %}
+  </div>
+
+  <!-- Recent Users -->
+  <div class="ew-section">
+    <h3>👥 Recent Signups</h3>
+    <table class="ew-table">
+      <thead><tr><th>Name</th><th>Email</th><th>Joined</th></tr></thead>
+      <tbody>
+        {% for u in analytics.recent_users %}
+        <tr>
+          <td>{{ u.get_full_name }}</td>
+          <td style="color:#60a5fa;font-size:.8rem">{{ u.email }}</td>
+          <td style="font-size:.78rem;color:#475569">{{ u.date_joined|date:"d M, g:i a" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Quick Links -->
+<div class="ew-section">
+  <h3>⚡ Quick Actions</h3>
+  <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+    <a href="/admin/rewards/airtimeredemption/?status=pending" style="background:#1d4ed8;color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600">Process Redemptions</a>
+    <a href="/admin/surveys/survey/add/" style="background:#059669;color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600">Add Survey</a>
+    <a href="/admin/quizzes/quiz/add/" style="background:#7c3aed;color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600">Add Quiz</a>
+    <a href="/admin/rewards/notification/add/" style="background:#b45309;color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600">Broadcast Notification</a>
+    <a href="/admin/accounts/user/" style="background:#374151;color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600">Manage Users</a>
+    <a href="/admin/referrals/referralrecord/?status=flagged" style="background:#991b1b;color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600">Fraud Review</a>
+  </div>
+</div>
+
+{% endif %}
+
+<!-- Default Django app list below -->
+<div style="margin-top:2rem">
+  <h2 style="color:#f8fafc;font-size:1rem;margin-bottom:1rem">📦 All Modules</h2>
+  {% for app in app_list %}
+  <div class="ew-section" style="margin-bottom:1rem">
+    <h3>{{ app.name }}</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+      {% for model in app.models %}
+      <a href="{{ model.admin_url }}" style="background:#0f172a;border:1px solid #334155;color:#94a3b8;padding:6px 14px;border-radius:8px;text-decoration:none;font-size:.8rem;transition:all .2s">
+        {{ model.name }} {% if model.add_url %}<span style="color:#3b82f6;margin-left:4px">+</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

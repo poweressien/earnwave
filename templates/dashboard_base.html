@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block body %}
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="flex items-center gap-2">
+    <button class="hamburger" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <a href="{% url 'core:landing' %}" class="navbar-brand">Earn<span class="dot">W</span>ave</a>
+  </div>
+  <div class="navbar-actions">
+    <a href="{% url 'rewards:home' %}" class="btn btn-sm btn-ghost">
+      <i class="fas fa-coins text-gold"></i>
+      <span class="font-bold text-gold">{{ user.points_balance|intcomma }}</span> pts
+    </a>
+    <a href="{% url 'dashboard:notifications' %}" class="btn btn-sm btn-ghost" style="position:relative">
+      <i class="fas fa-bell"></i>
+      {% if unread_notification_count %}<span style="position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;"></span>{% endif %}
+    </a>
+    <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-ghost">
+      <i class="fas fa-user-circle"></i>
+    </a>
+    <button id="themeToggle" class="btn btn-sm btn-ghost" title="Toggle theme">
+      <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
+  </div>
+</nav>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div style="padding:0 1rem 1rem;">
+    <div style="display:flex;align-items:center;gap:.75rem;padding:1rem;background:rgba(37,99,235,0.08);border-radius:12px;border:1px solid rgba(37,99,235,0.15);">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--blue-600);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-display);font-size:1rem;flex-shrink:0;">{{ user.first_name.0 }}</div>
+      <div style="min-width:0;">
+        <div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ user.get_full_name }}</div>
+        <div class="level-badge level-{{ user.level }}" style="margin-top:.2rem;font-size:.65rem;">{{ user.level }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="sidebar-section-title mt-2">Main</div>
+  <a href="{% url 'dashboard:home' %}" class="sidebar-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+    <i class="fas fa-th-large icon"></i> Dashboard
+  </a>
+  <a href="{% url 'surveys:list' %}" class="sidebar-item {% if 'surveys' in request.path %}active{% endif %}">
+    <i class="fas fa-clipboard-list icon"></i> Surveys
+  </a>
+  <a href="{% url 'quizzes:list' %}" class="sidebar-item {% if 'quizzes' in request.path %}active{% endif %}">
+    <i class="fas fa-brain icon"></i> Quizzes
+  </a>
+  <a href="{% url 'games:list' %}" class="sidebar-item {% if 'games' in request.path %}active{% endif %}">
+    <i class="fas fa-gamepad icon"></i> Brain Games
+  </a>
+  <div class="sidebar-section-title mt-3">Earn & Rewards</div>
+  <a href="{% url 'rewards:home' %}" class="sidebar-item {% if 'rewards' in request.path %}active{% endif %}">
+    <i class="fas fa-coins icon"></i> Redeem Airtime
+  </a>
+  <a href="{% url 'referrals:dashboard' %}" class="sidebar-item {% if 'referrals' in request.path %}active{% endif %}">
+    <i class="fas fa-users icon"></i> Referrals
+  </a>
+  <a href="{% url 'quizzes:leaderboard' %}" class="sidebar-item">
+    <i class="fas fa-trophy icon"></i> Leaderboard
+  </a>
+  <div class="sidebar-section-title mt-3">Account</div>
+  <a href="{% url 'accounts:profile' %}" class="sidebar-item {% if 'profile' in request.path %}active{% endif %}">
+    <i class="fas fa-user icon"></i> Profile
+  </a>
+  <a href="{% url 'dashboard:notifications' %}" class="sidebar-item">
+    <i class="fas fa-bell icon"></i> Notifications
+    {% if unread_notification_count %}<span class="sidebar-badge">{{ unread_notification_count }}</span>{% endif %}
+  </a>
+  <a href="{% url 'accounts:logout' %}" class="sidebar-item" style="color:var(--red);margin-top:1rem;">
+    <i class="fas fa-sign-out-alt icon"></i> Sign Out
+  </a>
+</aside>
+
+<main class="main-content">
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags|default:'info' }}">
+    <i class="fas fa-{% if msg.tags == 'success' %}check-circle{% elif msg.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+    {{ msg }}
+  </div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+
+<script>
+// Sidebar toggle
+const sidebar=document.getElementById('sidebar');
+const overlay=document.getElementById('sidebarOverlay');
+const toggle=document.getElementById('sidebarToggle');
+toggle?.addEventListener('click',()=>{sidebar.classList.toggle('open');overlay.classList.toggle('show');});
+overlay?.addEventListener('click',()=>{sidebar.classList.remove('open');overlay.classList.remove('show');});
+// Theme toggle
+const themeToggle=document.getElementById('themeToggle');
+const themeIcon=document.getElementById('themeIcon');
+const body=document.getElementById('body-root');
+const savedTheme=localStorage.getItem('ew_theme')||'dark';
+if(savedTheme==='light'){body.classList.add('light-mode');themeIcon.className='fas fa-sun';}
+themeToggle?.addEventListener('click',()=>{
+  const isLight=body.classList.toggle('light-mode');
+  themeIcon.className=isLight?'fas fa-sun':'fas fa-moon';
+  localStorage.setItem('ew_theme',isLight?'light':'dark');
+  fetch('{% url "accounts:toggle_dark_mode" %}',{method:'POST',headers:{'X-CSRFToken':CSRF_TOKEN}});
+});
+</script>
+{% block page_js %}{% endblock %}
+{% endblock %}

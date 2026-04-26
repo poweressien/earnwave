@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Contact - EarnWave{% endblock %}
+{% block body %}
+<nav class="earnwave-nav"><div class="container"><div class="d-flex align-items-center justify-content-between"><a href="/" class="nav-brand">Earn<span>Wave</span></a><a href="{% url 'accounts:login' %}" class="btn-nav-cta">Sign In</a></div></div></nav>
+<div style="background:var(--black);min-height:100vh;padding:4rem 0">
+<div class="container" style="max-width:680px">
+  <div class="text-center mb-5">
+    <h1 style="font-family:var(--font-display);font-size:2.5rem;font-weight:800">Get in Touch</h1>
+    <p style="color:var(--muted)">We'd love to hear from you. Send us a message and we'll respond within 24 hours.</p>
+  </div>
+  <div class="ew-card">
+    <form onsubmit="handleContact(event)">
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6">
+          <label class="form-label-ew">First Name</label>
+          <input type="text" class="ew-form-control" placeholder="John" required>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-ew">Last Name</label>
+          <input type="text" class="ew-form-control" placeholder="Doe" required>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label-ew">Email</label>
+        <input type="email" class="ew-form-control" placeholder="john@example.com" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label-ew">Subject</label>
+        <select class="ew-form-control">
+          <option>General Enquiry</option>
+          <option>Redemption Issue</option>
+          <option>Account Problem</option>
+          <option>Sponsorship / Advertising</option>
+          <option>Report Fraud</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="form-label-ew">Message</label>
+        <textarea class="ew-form-control" rows="5" placeholder="Tell us what's on your mind..." required></textarea>
+      </div>
+      <button type="submit" class="btn-primary-ew w-100" style="justify-content:center" id="contactBtn">
+        <i class="fas fa-paper-plane"></i> Send Message
+      </button>
+    </form>
+    <div class="mt-4 pt-3" style="border-top:1px solid var(--dark-border)">
+      <div class="row g-3 text-center">
+        <div class="col-4">
+          <div style="font-size:1.5rem;margin-bottom:.25rem">&#128231;</div>
+          <div style="font-size:.8rem;color:var(--muted)">Email</div>
+          <div style="font-size:.82rem;color:var(--blue-light)">support@earnwave.ng</div>
+        </div>
+        <div class="col-4">
+          <div style="font-size:1.5rem;margin-bottom:.25rem">&#128172;</div>
+          <div style="font-size:.8rem;color:var(--muted)">WhatsApp</div>
+          <div style="font-size:.82rem;color:var(--blue-light)">+234 800 EARN WAVE</div>
+        </div>
+        <div class="col-4">
+          <div style="font-size:1.5rem;margin-bottom:.25rem">&#128338;</div>
+          <div style="font-size:.8rem;color:var(--muted)">Response Time</div>
+          <div style="font-size:.82rem;color:var(--blue-light)">Within 24 hours</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function handleContact(e) {
+  e.preventDefault();
+  const btn = document.getElementById('contactBtn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = '<i class="fas fa-check"></i> Message Sent!';
+    btn.style.background = 'var(--success)';
+    showToast('Message Received', 'We\'ll get back to you within 24 hours.', 'success');
+  }, 1500);
+}
+</script>
+{% endblock %}

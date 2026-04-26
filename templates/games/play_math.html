@@ -1,0 +1,157 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}{{ game.title }} - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div style="max-width:560px;margin:0 auto">
+  <div class="page-header">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h1 class="page-title">{{ game.title }}</h1>
+        <p class="page-subtitle">Solve as many as you can in {{ game.time_limit_seconds }}s!</p>
+      </div>
+      <div class="quiz-timer" id="timer">{{ game.time_limit_seconds }}</div>
+    </div>
+    <div class="d-flex gap-3 mt-2">
+      <span style="color:var(--muted);font-size:.875rem">Score: <strong id="score" class="text-blue">0</strong></span>
+      <span style="color:var(--muted);font-size:.875rem">Streak: <strong id="streak" class="text-gold">0</strong> 🔥</span>
+    </div>
+    <div class="ew-progress mt-3"><div class="ew-progress-fill" id="timerBar" style="width:100%"></div></div>
+  </div>
+
+  <div id="gameArea">
+    <div class="quiz-question" style="text-align:center">
+      <div style="font-size:2.5rem;font-family:var(--font-display);font-weight:800;color:var(--white);margin-bottom:1.5rem" id="question">Loading...</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem" id="options"></div>
+    </div>
+    <div style="text-align:center;margin-top:1rem" id="feedback"></div>
+  </div>
+
+  <div id="gameResult" style="display:none;text-align:center;padding:3rem 1rem">
+    <div style="font-size:4rem;margin-bottom:1rem" id="resEmoji">⏰</div>
+    <h2 style="font-family:var(--font-display);font-size:2rem;font-weight:800" id="resTitle">Time's Up!</h2>
+    <p style="color:var(--muted);margin:.5rem 0 2rem" id="resText"></p>
+    <div class="row g-2 justify-content-center mb-3">
+      <div class="col-auto"><div class="stat-card blue" style="min-width:140px"><div class="stat-label">Points Earned</div><div class="stat-number" id="resPoints">0</div></div></div>
+      <div class="col-auto"><div class="stat-card green" style="min-width:140px"><div class="stat-label">Correct Answers</div><div class="stat-number" id="resCorrect">0</div></div></div>
+    </div>
+    <a href="{% url 'games:list' %}" class="btn-primary-ew" style="text-decoration:none"><i class="fas fa-redo"></i> Play Again</a>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const TOTAL_TIME = {{ game.time_limit_seconds }};
+const POINTS_REWARD = {{ game.points_reward }};
+const SESSION_ID = '{{ session.id }}';
+let timeLeft = TOTAL_TIME, score = 0, streak = 0, correctCount = 0, totalAnswered = 0;
+let currentAnswer, timer, timerBarInterval;
+
+function generateQuestion() {
+  const ops = ['+', '-', '×', '÷'];
+  const difficulty = score < 5 ? 0 : score < 15 ? 1 : 2;
+  let a, b, op, answer;
+
+  if (difficulty === 0) {
+    op = ops[Math.floor(Math.random() * 2)]; // + or -
+    a = Math.floor(Math.random() * 20) + 1;
+    b = Math.floor(Math.random() * 20) + 1;
+    if (op === '-' && b > a) [a, b] = [b, a];
+    answer = op === '+' ? a + b : a - b;
+  } else if (difficulty === 1) {
+    op = ops[Math.floor(Math.random() * 3)]; // +, -, ×
+    a = Math.floor(Math.random() * 12) + 1;
+    b = Math.floor(Math.random() * 12) + 1;
+    if (op === '+') answer = a + b, a += 10, b += 10;
+    else if (op === '-') { a = a + b; answer = a - b; }
+    else answer = a * b;
+  } else {
+    op = ops[Math.floor(Math.random() * 4)];
+    a = Math.floor(Math.random() * 15) + 2;
+    b = Math.floor(Math.random() * 15) + 2;
+    if (op === '÷') { answer = a; a = a * b; }
+    else if (op === '×') answer = a * b;
+    else if (op === '+') { a += 20; b += 20; answer = a + b; }
+    else { a = a + b + 10; answer = a - b; }
+  }
+
+  document.getElementById('question').textContent = `${a} ${op} ${b} = ?`;
+  currentAnswer = answer;
+
+  // Generate 4 options including correct answer
+  const options = new Set([answer]);
+  while (options.size < 4) {
+    const delta = Math.floor(Math.random() * 10) + 1;
+    options.add(answer + (Math.random() > 0.5 ? delta : -delta));
+  }
+  const shuffled = [...options].sort(() => Math.random() - 0.5);
+
+  const container = document.getElementById('options');
+  container.innerHTML = '';
+  shuffled.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.style.cssText = 'font-size:1.3rem;font-weight:700;text-align:center;justify-content:center;font-family:var(--font-display)';
+    btn.textContent = opt;
+    btn.onclick = () => checkAnswer(btn, opt);
+    container.appendChild(btn);
+  });
+}
+
+function checkAnswer(btn, chosen) {
+  totalAnswered++;
+  const allBtns = document.querySelectorAll('#options .quiz-option');
+  allBtns.forEach(b => b.onclick = null);
+
+  const feedback = document.getElementById('feedback');
+  if (chosen === currentAnswer) {
+    btn.classList.add('correct');
+    score++; streak++;
+    correctCount++;
+    const bonus = streak >= 3 ? '🔥 Streak bonus!' : '';
+    feedback.innerHTML = `<span style="color:var(--success);font-weight:700;font-size:1rem">✓ Correct! ${bonus}</span>`;
+    document.getElementById('score').textContent = score;
+    document.getElementById('streak').textContent = streak;
+  } else {
+    btn.classList.add('wrong');
+    allBtns.forEach(b => { if (parseInt(b.textContent) === currentAnswer) b.classList.add('correct'); });
+    streak = 0;
+    feedback.innerHTML = `<span style="color:var(--danger);font-weight:700;font-size:1rem">✗ Answer: ${currentAnswer}</span>`;
+    document.getElementById('streak').textContent = 0;
+  }
+  setTimeout(() => { feedback.innerHTML = ''; generateQuestion(); }, 900);
+}
+
+function startTimer() {
+  const startTime = Date.now();
+  timer = setInterval(() => {
+    const elapsed = (Date.now() - startTime) / 1000;
+    timeLeft = Math.max(0, TOTAL_TIME - elapsed);
+    document.getElementById('timer').textContent = Math.ceil(timeLeft);
+    document.getElementById('timerBar').style.width = (timeLeft / TOTAL_TIME * 100) + '%';
+    if (timeLeft <= 10) {
+      document.getElementById('timer').classList.add('danger');
+      document.getElementById('timerBar').style.background = 'var(--danger)';
+    }
+    if (timeLeft <= 0) { clearInterval(timer); endGame(); }
+  }, 100);
+}
+
+function endGame() {
+  document.getElementById('gameArea').style.display = 'none';
+  document.getElementById('gameResult').style.display = 'block';
+  const pts = score >= 20 ? POINTS_REWARD : Math.round(score / 20 * POINTS_REWARD);
+  document.getElementById('resEmoji').textContent = score >= 20 ? '🏆' : score >= 10 ? '🎯' : '⏰';
+  document.getElementById('resTitle').textContent = score >= 20 ? 'Math Legend!' : score >= 10 ? 'Great Job!' : 'Time\'s Up!';
+  document.getElementById('resText').textContent = `You answered ${totalAnswered} questions, ${correctCount} correct (${score} final score).`;
+  document.getElementById('resPoints').textContent = '+' + pts;
+  document.getElementById('resCorrect').textContent = correctCount;
+  fetch(`/games/session/${SESSION_ID}/complete/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+    body: JSON.stringify({ score, won: score >= 10, time_taken: TOTAL_TIME, level: Math.floor(score / 5) + 1 })
+  });
+}
+
+generateQuestion();
+startTimer();
+</script>
+{% endblock %}

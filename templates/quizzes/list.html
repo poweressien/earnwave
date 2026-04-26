@@ -1,0 +1,42 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Quizzes - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div class="page-header">
+  <h1 class="page-title">🧠 Quizzes & Trivia</h1>
+  <p class="page-subtitle">Test your knowledge and earn points for every correct answer.</p>
+</div>
+<!-- Category Filter -->
+<div class="d-flex gap-2 flex-wrap mb-4">
+  <a href="{% url 'quizzes:list' %}" class="btn-{% if not active_cat %}primary{% else %}outline{% endif %}-ew btn-sm-ew" style="text-decoration:none">All</a>
+  {% for cat in categories %}
+  <a href="?category={{ cat.slug }}" class="btn-{% if active_cat == cat.slug %}primary{% else %}outline{% endif %}-ew btn-sm-ew" style="text-decoration:none">{{ cat.name }}</a>
+  {% endfor %}
+</div>
+<div class="row gutter-y">
+  {% for quiz in quizzes %}
+  <div class="col-md-6 col-xl-4">
+    <div class="task-card h-100">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <span class="task-points-badge">+{{ quiz.points_per_correct }} pts/correct</span>
+        <span class="difficulty-{{ quiz.difficulty }}" style="font-size:.8rem;font-weight:600">{{ quiz.get_difficulty_display }}</span>
+      </div>
+      {% if quiz.is_daily %}<div style="font-size:.7rem;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:.25rem">⭐ Daily Challenge</div>{% endif %}
+      <h5 style="font-family:var(--font-display);font-weight:700;color:var(--white);font-size:1rem;margin-bottom:.35rem">{{ quiz.title }}</h5>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem">{{ quiz.questions.count }} questions · {{ quiz.time_limit_seconds }}s each</p>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">{{ quiz.category.name }}</p>
+      <div class="d-flex align-items-center justify-content-between">
+        <span style="font-size:.75rem;color:var(--muted)"><i class="fas fa-users"></i> {{ quiz.total_plays }} plays</span>
+        <a href="{% url 'quizzes:play' quiz.pk %}" class="btn-primary-ew btn-sm-ew" style="text-decoration:none">
+          <i class="fas fa-play"></i> Play Now
+        </a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5" style="color:var(--muted)">
+    <div style="font-size:4rem;margin-bottom:1rem">🧠</div>
+    <h4>No quizzes yet</h4>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body %}
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">Earn<span>Wave</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="{% url 'dashboard:home' %}" class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+        <i class="fas fa-th-large"></i> Dashboard
+      </a>
+      <a href="{% url 'surveys:list' %}" class="sidebar-link {% if 'surveys' in request.path %}active{% endif %}">
+        <i class="fas fa-clipboard-list"></i> Surveys
+        <span class="ms-auto badge bg-primary" style="font-size:.65rem">Earn</span>
+      </a>
+      <a href="{% url 'quizzes:list' %}" class="sidebar-link {% if 'quizzes' in request.path %}active{% endif %}">
+        <i class="fas fa-brain"></i> Quizzes
+      </a>
+      <a href="{% url 'games:list' %}" class="sidebar-link {% if 'games' in request.path %}active{% endif %}">
+        <i class="fas fa-gamepad"></i> Games
+      </a>
+      <div class="sidebar-section-label" style="margin-top:.5rem">Earn & Redeem</div>
+      <a href="{% url 'rewards:home' %}" class="sidebar-link {% if 'rewards' in request.path %}active{% endif %}">
+        <i class="fas fa-coins"></i> Points & Airtime
+      </a>
+      <a href="{% url 'referrals:home' %}" class="sidebar-link {% if 'referrals' in request.path %}active{% endif %}">
+        <i class="fas fa-users"></i> Referrals
+      </a>
+      <a href="{% url 'quizzes:leaderboard' %}" class="sidebar-link">
+        <i class="fas fa-trophy"></i> Leaderboard
+      </a>
+      <div class="sidebar-section-label" style="margin-top:.5rem">Account</div>
+      <a href="{% url 'accounts:profile' %}" class="sidebar-link {% if 'profile' in request.path %}active{% endif %}">
+        <i class="fas fa-user"></i> Profile
+      </a>
+      <a href="{% url 'dashboard:notifications' %}" class="sidebar-link" style="position:relative">
+        <i class="fas fa-bell"></i> Notifications
+        {% if unread_notification_count > 0 %}
+        <span class="ms-auto" style="background:var(--danger);color:white;font-size:.65rem;padding:2px 7px;border-radius:50px;font-weight:700">{{ unread_notification_count }}</span>
+        {% endif %}
+      </a>
+      <a href="#" onclick="toggleDarkMode()" class="sidebar-link">
+        <i class="fas fa-moon"></i> Toggle Theme
+      </a>
+      <a href="{% url 'accounts:logout' %}" class="sidebar-link">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </nav>
+    <!-- User info -->
+    <div class="sidebar-user">
+      <img src="{{ request.user.profile.get_avatar_url }}" class="sidebar-avatar" alt="Avatar">
+      <div>
+        <div class="sidebar-user-name">{{ request.user.first_name }}</div>
+        <div class="sidebar-user-pts">⚡ {{ request.user.points_balance }} pts</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <!-- Mobile Nav -->
+    <div class="d-flex align-items-center justify-content-between mb-4 d-md-none">
+      <span style="font-family:var(--font-display);font-weight:800;font-size:1.3rem">Earn<span style="color:var(--blue)">Wave</span></span>
+      <button class="btn" style="color:var(--white);background:var(--dark-card);border:1px solid var(--dark-border)" onclick="document.getElementById('sidebar').classList.toggle('open')">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    {% block dashboard_content %}{% endblock %}
+  </main>
+</div>
+<!-- Mobile sidebar overlay -->
+<div id="sidebarOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99" onclick="document.getElementById('sidebar').classList.remove('open');this.style.display='none'"></div>
+<script>
+const sidebar = document.getElementById('sidebar');
+const observer = new MutationObserver(()=>{
+  document.getElementById('sidebarOverlay').style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+observer.observe(sidebar, {attributes:true,attributeFilter:['class']});
+</script>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Login - EarnWave{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <div class="auth-bg-glow"></div>
+  <div class="auth-card animate-fade-up">
+    <div class="text-center mb-4">
+      <a href="/" style="font-family:var(--font-display);font-size:1.75rem;font-weight:800;color:var(--white);text-decoration:none">Earn<span style="color:var(--blue)">Wave</span></a>
+      <p class="text-muted-ew mt-1" style="font-size:.9rem">Welcome back! Sign in to continue earning.</p>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}
+      <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:.75rem 1rem;color:#EF4444;font-size:.875rem;margin-bottom:1rem">
+        <i class="fas fa-exclamation-circle"></i> {{ error }}
+      </div>
+      {% endfor %}
+      <div class="mb-3">
+        <label class="form-label-ew">Email Address</label>
+        <input type="email" name="email" class="ew-form-control" placeholder="you@example.com" value="{{ form.email.value|default:'' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label-ew">Password</label>
+        <div style="position:relative">
+          <input type="password" name="password" id="passwordInput" class="ew-form-control" placeholder="Your password" style="padding-right:2.75rem" required>
+          <button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer"><i class="fas fa-eye" id="pwIcon"></i></button>
+        </div>
+      </div>
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <label style="display:flex;align-items:center;gap:8px;font-size:.875rem;color:var(--muted);cursor:pointer">
+          <input type="checkbox" name="remember_me" style="accent-color:var(--blue)"> Remember me
+        </label>
+        <a href="#" style="color:var(--blue-light);font-size:.875rem;font-weight:500">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn-primary-ew w-100" style="justify-content:center">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+      </button>
+    </form>
+    <div class="divider-text">or</div>
+    <a href="{% url 'accounts:signup' %}" class="btn-outline-ew w-100" style="justify-content:center;text-decoration:none">
+      <i class="fas fa-user-plus"></i> Create an Account
+    </a>
+    <div class="text-center mt-3">
+      <a href="{% url 'core:landing' %}" style="color:var(--muted);font-size:.8rem">← Back to Homepage</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function togglePw() {
+  const input = document.getElementById('passwordInput');
+  const icon = document.getElementById('pwIcon');
+  input.type = input.type === 'password' ? 'text' : 'password';
+  icon.className = input.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+}
+</script>
+{% endblock %}

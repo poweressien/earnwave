@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Terms of Service - EarnWave{% endblock %}
+{% block body %}
+<nav class="earnwave-nav"><div class="container"><div class="d-flex align-items-center justify-content-between"><a href="/" class="nav-brand">Earn<span>Wave</span></a><a href="{% url 'accounts:login' %}" class="btn-nav-cta">Sign In</a></div></div></nav>
+<div style="background:var(--black);min-height:100vh;padding:4rem 0">
+<div class="container" style="max-width:780px">
+  <h1 style="font-family:var(--font-display);font-size:2rem;font-weight:800;margin-bottom:.5rem">Terms of Service</h1>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:2rem">Last updated: January 2024</p>
+  <div style="color:var(--muted);line-height:1.85;font-size:.95rem">
+    {% for term in "12345678"|make_list %}
+    <div class="ew-card mb-3">
+      {% if term == "1" %}<h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">1. Acceptance of Terms</h4><p>By using EarnWave, you agree to these Terms. If you disagree, please do not use the platform.</p>
+      {% elif term == "2" %}<h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">2. Eligibility</h4><p>You must be 18 years or older to use EarnWave. By registering, you confirm you meet this requirement.</p>
+      {% elif term == "3" %}<h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">3. One Account Per Person</h4><p>Each user may only have one account. Creating multiple accounts to abuse the rewards system is strictly prohibited and will result in permanent banning of all associated accounts and forfeiture of points.</p>
+      {% elif term == "4" %}<h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">4. Points &amp; Rewards</h4><p>Points have no cash value and cannot be transferred between accounts. EarnWave reserves the right to adjust point values, earning rates, and redemption minimums at any time with notice. Points expire after 12 months of account inactivity.</p>
+      {% elif term == "5" %}<h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">5. Prohibited Activities</h4><p>You may not: use bots or automated tools, create fake referrals, manipulate surveys, abuse ad-watching systems, attempt to hack or reverse-engineer the platform, or resell earned airtime. Violations result in immediate account termination.</p>
+      {% elif term == "6" %}<h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">6. Referral Program</h4><p>Referral bonuses are paid only for genuine new users. Referring yourself using different email addresses, fake users, or purchased accounts is fraud. We actively monitor for referral abuse.</p>
+      {% elif term == "7" %}<h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">7. Redemptions</h4><p>Airtime redemptions are final. Ensure phone number and network accuracy before submitting. EarnWave is not responsible for airtime sent to incorrect numbers due to user error.</p>
+      {% elif term == "8" %}<h4 style="color:var(--white);font-weight:700;margin-bottom:.75rem">8. Contact</h4><p>Legal enquiries: <a href="mailto:legal@earnwave.ng" style="color:var(--blue-light)">legal@earnwave.ng</a></p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en-NG">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="EarnWave - Earn airtime by completing surveys, quizzes and games. Nigeria's #1 rewards platform.">
+  <meta name="theme-color" content="#2563EB">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="EarnWave">
+  <title>{% block title %}EarnWave - Earn Airtime Playing{% endblock %}</title>
+  {% load static %}
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/earnwave.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body{% if user.is_authenticated and not user.profile.dark_mode %} class="light-mode"{% endif %}>
+
+{% if messages %}
+<div class="ew-toast-container" id="toastContainer">
+  {% for message in messages %}
+  <div class="ew-toast {% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}" data-auto-dismiss="5500">
+    <div class="ew-toast-icon">{% if message.tags == 'error' %}&#10060;{% elif message.tags == 'success' %}&#9989;{% else %}&#8505;&#65039;{% endif %}</div>
+    <div style="flex:1">
+      <div class="ew-toast-title">{% if message.tags == 'error' %}Error{% elif message.tags == 'success' %}Success{% else %}Notice{% endif %}</div>
+      <div class="ew-toast-msg">{{ message }}</div>
+    </div>
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:0 0 0 8px">&#215;</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% block body %}{% endblock %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/earnwave.js' %}"></script>
+<script>
+function getCsrf() {
+  const c = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
+  return c ? c.trim().split('=')[1] : '';
+}
+function toggleDarkMode() {
+  {% if user.is_authenticated %}
+  fetch('{% url "accounts:toggle_dark_mode" %}', {
+    method:'POST', headers:{'X-CSRFToken':getCsrf(),'Content-Type':'application/json'}
+  }).then(r=>r.json()).then(d=>{ document.body.classList.toggle('light-mode',!d.dark_mode); });
+  {% endif %}
+}
+function toggleMobileMenu() {
+  const m = document.getElementById('mobileMenu');
+  const i = document.getElementById('hamIcon');
+  if (!m) return;
+  const open = m.style.display === 'block';
+  m.style.display = open ? 'none' : 'block';
+  if(i) i.className = open ? 'fas fa-bars' : 'fas fa-times';
+}
+function showToast(title, msg, type='info') {
+  const container = document.getElementById('toastContainer') || (() => {
+    const d = document.createElement('div'); d.id='toastContainer'; d.className='ew-toast-container'; document.body.appendChild(d); return d;
+  })();
+  const icons = {success:'&#9989;', error:'&#10060;', info:'&#8505;&#65039;'};
+  const t = document.createElement('div'); t.className=`ew-toast ${type}`;
+  t.innerHTML=`<div class="ew-toast-icon">${icons[type]||'&#8505;'}</div><div><div class="ew-toast-title">${title}</div><div class="ew-toast-msg">${msg}</div></div><button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;margin-left:auto">&#215;</button>`;
+  container.appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .4s,transform .4s'; t.style.opacity='0'; t.style.transform='translateX(40px)'; setTimeout(()=>t.remove(),420); }, 4500);
+}
+document.querySelectorAll('[data-auto-dismiss]').forEach(el => {
+  setTimeout(()=>{ el.style.transition='opacity .4s,transform .4s'; el.style.opacity='0'; el.style.transform='translateX(40px)'; setTimeout(()=>el.remove(),420); }, parseInt(el.dataset.autoDismiss)||5000);
+});
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('{% static "js/sw.js" %}').catch(()=>{}));
+}
+</script>
+{% block extra_js %}{% endblock %}
+
+<!-- PWA Install Banner -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);z-index:9998;background:var(--dark-card);border:1px solid var(--blue);border-radius:var(--radius-lg);padding:.85rem 1.25rem;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:360px;width:90%">
+  <span style="font-size:1.5rem">&#128241;</span>
+  <div style="flex:1"><div style="font-weight:700;font-size:.875rem;color:var(--white)">Install EarnWave</div><div style="font-size:.78rem;color:var(--muted)">Add to your homescreen</div></div>
+  <button onclick="installPWA()" style="background:var(--blue);color:white;border:none;padding:6px 14px;border-radius:8px;font-weight:600;font-size:.8rem;cursor:pointer">Install</button>
+  <button onclick="document.getElementById('pwaInstallBanner').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem">&#215;</button>
+</div>
+<script>
+let deferredInstallPrompt;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredInstallPrompt=e; const b=document.getElementById('pwaInstallBanner'); if(b)b.style.display='flex'; });
+function installPWA(){ if(deferredInstallPrompt){ deferredInstallPrompt.prompt(); deferredInstallPrompt.userChoice.then(()=>{ document.getElementById('pwaInstallBanner').remove(); deferredInstallPrompt=null; }); } }
+</script>
+</body>
+</html>

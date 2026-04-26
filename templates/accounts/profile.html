@@ -1,0 +1,259 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}My Profile - EarnWave{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+  <h1 class="page-title">👤 My Profile</h1>
+  <p class="page-subtitle">Your account, stats and preferences.</p>
+</div>
+
+<div class="row gutter-y">
+  <!-- LEFT: Profile Card -->
+  <div class="col-lg-4">
+    <!-- Avatar + Level Card -->
+    <div class="ew-card text-center mb-grid" style="padding:2rem">
+      <div style="position:relative;display:inline-block;margin-bottom:1.25rem">
+        <img src="{{ profile.get_avatar_url }}"
+             style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--blue)"
+             id="avatarPreview" alt="Avatar">
+        <label for="avatarUpload" style="position:absolute;bottom:0;right:0;background:var(--blue);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.75rem;color:white">
+          <i class="fas fa-camera"></i>
+        </label>
+      </div>
+      <h4 style="font-family:var(--font-display);font-weight:700;font-size:1.1rem">{{ request.user.get_full_name }}</h4>
+      <p style="color:var(--muted);font-size:.85rem;margin:.25rem 0 .75rem">{{ request.user.email }}</p>
+      <div class="d-flex gap-2 justify-content-center mb-3 flex-wrap">
+        <span class="level-badge level-{{ request.user.level|lower }}">
+          <i class="fas fa-star"></i> {{ request.user.level }}
+        </span>
+        {% if profile.state %}
+        <span style="background:rgba(255,255,255,.06);border:1px solid var(--dark-border);padding:3px 10px;border-radius:50px;font-size:.75rem;color:var(--muted)">
+          &#127463;&#127468; {{ profile.state }}
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Referral Code Block -->
+      <div style="background:var(--off-black);border:1px solid var(--dark-border);border-radius:12px;padding:.85rem">
+        <div style="font-size:.7rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem">Your Referral Code</div>
+        <div style="font-family:monospace;font-size:1.5rem;font-weight:800;color:var(--blue-light);letter-spacing:.12em">{{ request.user.referral_code }}</div>
+        <button onclick="copyCode('{{ request.user.referral_code }}')"
+                style="margin-top:.5rem;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.25);color:var(--blue-light);padding:4px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer" id="copyCodeBtn">
+          <i class="fas fa-copy"></i> Copy Code
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="ew-card mb-grid">
+      <div class="ew-card-header"><span class="ew-card-title">⚡ Quick Stats</span></div>
+      {% with pts=request.user.points_balance %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div style="text-align:center;padding:.75rem;background:rgba(37,99,235,.06);border-radius:10px">
+          <div style="font-size:1.4rem;font-weight:800;font-family:var(--font-display);color:var(--blue-light)">{{ pts|intcomma }}</div>
+          <div style="font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase">Balance</div>
+        </div>
+        <div style="text-align:center;padding:.75rem;background:rgba(16,185,129,.06);border-radius:10px">
+          <div style="font-size:1.4rem;font-weight:800;font-family:var(--font-display);color:var(--success)">{{ profile.total_points_earned|intcomma }}</div>
+          <div style="font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase">Lifetime</div>
+        </div>
+        <div style="text-align:center;padding:.75rem;background:rgba(245,158,11,.06);border-radius:10px">
+          <div style="font-size:1.4rem;font-weight:800;font-family:var(--font-display);color:var(--gold)">{{ profile.login_streak }}</div>
+          <div style="font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase">Day Streak 🔥</div>
+        </div>
+        <div style="text-align:center;padding:.75rem;background:rgba(139,92,246,.06);border-radius:10px">
+          <div style="font-size:1.4rem;font-weight:800;font-family:var(--font-display);color:#A78BFA">&#8358;{{ profile.total_airtime_earned|intcomma }}</div>
+          <div style="font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase">Airtime</div>
+        </div>
+      </div>
+      {% endwith %}
+    </div>
+
+    <!-- Activity Summary -->
+    <div class="ew-card">
+      <div class="ew-card-header"><span class="ew-card-title">📊 Activity Summary</span></div>
+      {% for label, icon, value, color in activity_stats %}
+      <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid var(--dark-border)">
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size:1rem">{{ icon }}</span>
+          <span style="font-size:.875rem;color:var(--muted)">{{ label }}</span>
+        </div>
+        <strong style="color:{{ color }};font-family:var(--font-display)">{{ value }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- RIGHT: Edit Form + Charts -->
+  <div class="col-lg-8">
+    <!-- Edit Profile Form -->
+    <div class="ew-card mb-grid">
+      <div class="ew-card-header"><span class="ew-card-title">✏️ Edit Profile</span></div>
+      <form method="post" enctype="multipart/form-data" id="profileForm">
+        {% csrf_token %}
+        <input type="file" id="avatarUpload" name="avatar" accept="image/*" style="display:none" onchange="previewAvatar(this)">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label-ew">Preferred Network</label>
+            {{ form.preferred_network }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label-ew">Airtime Phone Number</label>
+            {{ form.airtime_phone }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label-ew">State of Residence</label>
+            {{ form.state }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label-ew">Date of Birth</label>
+            {{ form.date_of_birth }}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label-ew">Gender</label>
+            {{ form.gender }}
+          </div>
+          <div class="col-12">
+            <label class="form-label-ew">Bio <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+            {{ form.bio }}
+          </div>
+          <div class="col-12">
+            <div style="display:flex;flex-wrap:wrap;gap:1.5rem">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <div style="position:relative">
+                  {{ form.email_notifications }}
+                </div>
+                <div>
+                  <div style="font-size:.875rem;font-weight:600;color:var(--white)">Email Notifications</div>
+                  <div style="font-size:.75rem;color:var(--muted)">Get updates via email</div>
+                </div>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                {{ form.dark_mode }}
+                <div>
+                  <div style="font-size:.875rem;font-weight:600;color:var(--white)">Dark Mode</div>
+                  <div style="font-size:.75rem;color:var(--muted)">Use dark theme</div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn-primary-ew"><i class="fas fa-save"></i> Save Changes</button>
+          <a href="{% url 'dashboard:home' %}" class="btn-outline-ew" style="text-decoration:none"><i class="fas fa-arrow-left"></i> Dashboard</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Earning Activity Chart -->
+    <div class="ew-card mb-grid">
+      <div class="ew-card-header">
+        <span class="ew-card-title">📈 Points Earned — Last 30 Days</span>
+      </div>
+      <div style="position:relative;height:180px">
+        <canvas id="activityChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    {% if user_badges %}
+    <div class="ew-card">
+      <div class="ew-card-header">
+        <span class="ew-card-title">🏅 Earned Badges</span>
+        <span style="font-size:.8rem;color:var(--muted)">{{ user_badges.count }} / {{ total_badges }}</span>
+      </div>
+      <div class="row g-2">
+        {% for ub in user_badges %}
+        <div class="col-4 col-sm-3 col-md-2">
+          <div class="badge-card" title="{{ ub.badge.description }}">
+            <div class="badge-icon">🏆</div>
+            <div class="badge-name">{{ ub.badge.name }}</div>
+            <div class="badge-rarity {{ ub.badge.rarity }}">{{ ub.badge.get_rarity_display }}</div>
+            <div style="font-size:.65rem;color:var(--muted);margin-top:.2rem">{{ ub.earned_at|date:"d M" }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// Avatar preview
+function previewAvatar(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => document.getElementById('avatarPreview').src = e.target.result;
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// Copy referral code
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('copyCodeBtn');
+    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    btn.style.background = 'rgba(16,185,129,.2)';
+    btn.style.borderColor = 'rgba(16,185,129,.4)';
+    btn.style.color = 'var(--success)';
+    setTimeout(() => {
+      btn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+      btn.style.background = ''; btn.style.borderColor = ''; btn.style.color = '';
+    }, 2000);
+  });
+}
+
+// Activity Chart
+const chartData = {{ chart_data|safe }};
+const ctx = document.getElementById('activityChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: chartData.labels,
+    datasets: [{
+      label: 'Points Earned',
+      data: chartData.values,
+      backgroundColor: 'rgba(37,99,235,0.5)',
+      borderColor: 'rgba(37,99,235,0.9)',
+      borderWidth: 2,
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#16161F',
+        borderColor: '#22222E',
+        borderWidth: 1,
+        titleColor: '#F4F4F6',
+        bodyColor: '#8B8B9E',
+        padding: 10,
+        callbacks: {
+          label: ctx => ` ${ctx.parsed.y} pts`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#8B8B9E', font: { size: 10 } }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#8B8B9E', font: { size: 10 } },
+        beginAtZero: true,
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Leaderboard - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div class="page-header">
+  <h1 class="page-title">🏆 Leaderboard</h1>
+  <p class="page-subtitle">Top earners on the EarnWave platform.</p>
+</div>
+<div class="row gutter-y">
+  <div class="col-md-6">
+    <div class="ew-card">
+      <div class="ew-card-header"><span class="ew-card-title">📅 This Week</span></div>
+      {% for entry in weekly %}
+      <div class="leaderboard-row {% if forloop.counter == 1 %}top-1{% elif forloop.counter == 2 %}top-2{% elif forloop.counter == 3 %}top-3{% endif %}">
+        <div class="rank-num {% if forloop.counter == 1 %}r1{% elif forloop.counter == 2 %}r2{% elif forloop.counter == 3 %}r3{% endif %}">
+          {% if forloop.counter <= 3 %}{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}{% else %}{{ forloop.counter }}{% endif %}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;color:var(--white)">{{ entry.user.get_full_name }}</div>
+          <div style="font-size:.75rem;color:var(--muted)">{{ entry.points|intcomma }} pts</div>
+        </div>
+        <span class="level-badge level-{{ entry.user.level|lower }}">{{ entry.user.level }}</span>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:3rem;color:var(--muted)">No data yet. Be the first!</div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="ew-card">
+      <div class="ew-card-header"><span class="ew-card-title">🌟 All Time</span></div>
+      {% for entry in alltime %}
+      <div class="leaderboard-row {% if forloop.counter == 1 %}top-1{% elif forloop.counter == 2 %}top-2{% elif forloop.counter == 3 %}top-3{% endif %}">
+        <div class="rank-num {% if forloop.counter == 1 %}r1{% elif forloop.counter == 2 %}r2{% elif forloop.counter == 3 %}r3{% endif %}">
+          {% if forloop.counter <= 3 %}{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}{% else %}{{ forloop.counter }}{% endif %}
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:600;color:var(--white)">{{ entry.user.get_full_name }}</div>
+          <div style="font-size:.75rem;color:var(--muted)">{{ entry.points|intcomma }} pts</div>
+        </div>
+        <span class="level-badge level-{{ entry.user.level|lower }}">{{ entry.user.level }}</span>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:3rem;color:var(--muted)">No data yet. Start earning!</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

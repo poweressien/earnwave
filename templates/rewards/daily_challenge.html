@@ -1,0 +1,110 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Daily Challenges - EarnWave{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+  <h1 class="page-title">🔥 Daily Challenges</h1>
+  <p class="page-subtitle">Complete today's challenges for bonus points. Resets every midnight.</p>
+</div>
+
+<!-- Challenge cards -->
+<div class="row gutter-y mb-grid">
+  {% for challenge in challenges %}
+  {% with uc=user_challenges|get_item:challenge.id %}
+  <div class="col-md-6 col-xl-4">
+    <div class="ew-card h-100" style="{% if uc and uc.is_complete %}border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.04){% elif uc %}border-color:rgba(37,99,235,.3){% endif %}">
+      <div class="d-flex align-items-start justify-content-between mb-3">
+        <div style="width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+          {% if challenge.challenge_type == 'survey' %}background:rgba(37,99,235,.12)
+          {% elif challenge.challenge_type == 'quiz' %}background:rgba(139,92,246,.12)
+          {% elif challenge.challenge_type == 'game' %}background:rgba(16,185,129,.12)
+          {% elif challenge.challenge_type == 'ad' %}background:rgba(245,158,11,.12)
+          {% else %}background:rgba(255,255,255,.06){% endif %}">
+          {% if challenge.challenge_type == 'survey' %}📋
+          {% elif challenge.challenge_type == 'quiz' %}🧠
+          {% elif challenge.challenge_type == 'game' %}🎮
+          {% elif challenge.challenge_type == 'ad' %}📺
+          {% elif challenge.challenge_type == 'referral' %}👥
+          {% else %}⚡{% endif %}
+        </div>
+        <span class="task-points-badge">+{{ challenge.points_reward }} pts</span>
+      </div>
+
+      <h5 style="font-family:var(--font-display);font-weight:700;color:var(--white);margin-bottom:.35rem">{{ challenge.title }}</h5>
+      <p style="color:var(--muted);font-size:.875rem;margin-bottom:1rem">{{ challenge.description }}</p>
+
+      <!-- Progress bar -->
+      <div class="mb-3">
+        {% if uc %}
+          {% with progress=uc.progress_pct %}
+          <div class="d-flex justify-content-between mb-1">
+            <small style="color:var(--muted)">Progress</small>
+            <small style="font-weight:700;color:{% if uc.is_complete %}var(--success){% else %}var(--blue-light){% endif %}">
+              {{ uc.progress }}/{{ challenge.target }}
+            </small>
+          </div>
+          <div class="ew-progress">
+            <div class="ew-progress-fill {% if uc.is_complete %}success{% endif %}"
+                 style="width:{{ progress }}%"></div>
+          </div>
+          {% endwith %}
+        {% else %}
+          <div class="d-flex justify-content-between mb-1">
+            <small style="color:var(--muted)">Progress</small>
+            <small style="color:var(--muted)">0/{{ challenge.target }}</small>
+          </div>
+          <div class="ew-progress"><div class="ew-progress-fill" style="width:0%"></div></div>
+        {% endif %}
+      </div>
+
+      {% if uc and uc.is_complete %}
+        <div style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:.6rem 1rem;text-align:center;color:var(--success);font-weight:700;font-size:.875rem">
+          <i class="fas fa-check-circle"></i> Completed! +{{ challenge.points_reward }} pts earned
+        </div>
+      {% else %}
+        {% if challenge.challenge_type == 'survey' %}
+          <a href="{% url 'surveys:list' %}" class="btn-primary-ew btn-sm-ew w-100" style="text-decoration:none;justify-content:center">Go to Surveys</a>
+        {% elif challenge.challenge_type == 'quiz' %}
+          <a href="{% url 'quizzes:list' %}" class="btn-primary-ew btn-sm-ew w-100" style="text-decoration:none;justify-content:center">Go to Quizzes</a>
+        {% elif challenge.challenge_type == 'game' %}
+          <a href="{% url 'games:list' %}" class="btn-primary-ew btn-sm-ew w-100" style="text-decoration:none;justify-content:center">Go to Games</a>
+        {% elif challenge.challenge_type == 'ad' %}
+          <a href="{% url 'dashboard:home' %}" class="btn-primary-ew btn-sm-ew w-100" style="text-decoration:none;justify-content:center">Watch Ads on Dashboard</a>
+        {% elif challenge.challenge_type == 'referral' %}
+          <a href="{% url 'referrals:home' %}" class="btn-primary-ew btn-sm-ew w-100" style="text-decoration:none;justify-content:center">Go to Referrals</a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+  {% endwith %}
+  {% empty %}
+  <div class="col-12 text-center py-5" style="color:var(--muted)">
+    <div style="font-size:4rem;margin-bottom:1rem">🌅</div>
+    <h4>Challenges refresh at midnight</h4>
+    <p>Come back soon — new challenges are being prepared!</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Today's summary -->
+{% if challenges %}
+<div class="ew-card">
+  <div class="ew-card-header"><span class="ew-card-title">📊 Today's Progress</span></div>
+  <div class="row g-3 text-center">
+    <div class="col-4">
+      <div style="font-size:1.8rem;font-weight:800;font-family:var(--font-display);color:var(--blue-light)">{{ challenges.count }}</div>
+      <div style="font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase">Total Challenges</div>
+    </div>
+    <div class="col-4">
+      <div style="font-size:1.8rem;font-weight:800;font-family:var(--font-display);color:var(--success)">{{ completed_count }}</div>
+      <div style="font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase">Completed</div>
+    </div>
+    <div class="col-4">
+      <div style="font-size:1.8rem;font-weight:800;font-family:var(--font-display);color:var(--gold)">{{ total_challenge_pts }}</div>
+      <div style="font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase">Pts Available</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

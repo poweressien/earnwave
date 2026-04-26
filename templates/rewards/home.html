@@ -1,0 +1,246 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Points & Airtime - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div class="page-header">
+  <h1 class="page-title">&#9889; Points &amp; Airtime</h1>
+  <p class="page-subtitle">Convert your hard-earned points into real airtime.</p>
+</div>
+
+<!-- Stats Row -->
+<div class="row gutter-y mb-grid">
+  <div class="col-md-4">
+    <div class="stat-card blue">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div class="stat-label">Current Balance</div>
+          <div class="stat-number">{{ points|intcomma }}</div>
+          <small class="text-muted-ew">&#8776; &#8358;{{ points|floatformat:0 }} airtime</small>
+        </div>
+        <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card green">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div class="stat-label">Lifetime Earned</div>
+          <div class="stat-number">{{ total_earned|intcomma }}</div>
+          <small class="text-muted-ew">Total points ever earned</small>
+        </div>
+        <div class="stat-icon green"><i class="fas fa-chart-line"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card gold">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div class="stat-label">Airtime Redeemed</div>
+          <div class="stat-number">&#8358;{{ profile.total_airtime_earned|intcomma }}</div>
+          <small class="text-muted-ew">Total airtime received</small>
+        </div>
+        <div class="stat-icon gold"><i class="fas fa-mobile-alt"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row gutter-y mb-grid">
+  <!-- Redeem Form -->
+  <div class="col-lg-6">
+    <div class="ew-card">
+      <div class="ew-card-header"><span class="ew-card-title">&#128241; Redeem Airtime</span></div>
+      <form method="post" action="{% url 'rewards:redeem' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label-ew">Network Provider</label>
+          <select name="network" class="ew-form-control" required>
+            <option value="">Select network...</option>
+            <option value="MTN">&#128225; MTN</option>
+            <option value="Airtel">&#128225; Airtel</option>
+            <option value="Glo">&#128225; Glo</option>
+            <option value="9mobile">&#128225; 9mobile</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label-ew">Phone Number</label>
+          <input type="tel" name="phone_number" class="ew-form-control"
+                 placeholder="08012345678" value="{{ profile.airtime_phone }}" required>
+        </div>
+        <div class="mb-4">
+          <label class="form-label-ew">Airtime Amount (&#8358;)</label>
+          <div class="d-flex gap-2 flex-wrap mb-2">
+            <button type="button" class="btn-outline-ew btn-sm-ew amount-btn" data-amount="50" onclick="setAmount(50)">&#8358;50</button>
+            <button type="button" class="btn-outline-ew btn-sm-ew amount-btn" data-amount="100" onclick="setAmount(100)">&#8358;100</button>
+            <button type="button" class="btn-outline-ew btn-sm-ew amount-btn" data-amount="200" onclick="setAmount(200)">&#8358;200</button>
+            <button type="button" class="btn-outline-ew btn-sm-ew amount-btn" data-amount="500" onclick="setAmount(500)">&#8358;500</button>
+            <button type="button" class="btn-outline-ew btn-sm-ew amount-btn" data-amount="1000" onclick="setAmount(1000)">&#8358;1,000</button>
+          </div>
+          <input type="number" name="amount" id="amountInput" class="ew-form-control"
+                 placeholder="Or enter custom amount (&#8358;)" min="10" required>
+          <small class="text-muted-ew d-block mt-1">
+            100 points = &#8358;1 airtime &nbsp;&middot;&nbsp; Min: {{ min_redemption }} pts (&#8358;{{ min_redemption|floatformat:0 |slice:":-2" }}10)
+          </small>
+        </div>
+
+        <!-- Cost preview -->
+        <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;display:none" id="costPreview">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:.875rem;color:var(--muted)">Points to deduct:</span>
+            <strong class="text-blue" id="pointsCost">—</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span style="font-size:.875rem;color:var(--muted)">Balance after:</span>
+            <strong id="balanceAfter">—</strong>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary-ew w-100" style="justify-content:center">
+          <i class="fas fa-paper-plane"></i> Submit Redemption
+        </button>
+        <p style="text-align:center;color:var(--muted);font-size:.78rem;margin-top:.5rem">
+          &#128274; Secure &nbsp;&middot;&nbsp; Processed within 24 hours
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Redemption History -->
+  <div class="col-lg-6">
+    <div class="ew-card" style="height:100%">
+      <div class="ew-card-header"><span class="ew-card-title">&#128203; Redemption History</span></div>
+      {% if redemptions %}
+      <div style="overflow-x:auto">
+        <table class="ew-table">
+          <thead><tr><th>Network &amp; Phone</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for r in redemptions %}
+            <tr>
+              <td>
+                <strong>{{ r.network }}</strong><br>
+                <small class="text-muted-ew">{{ r.phone_number }}</small>
+              </td>
+              <td class="credit-badge">&#8358;{{ r.airtime_amount }}</td>
+              <td>
+                <span style="padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;
+                  {% if r.status == 'completed' %}background:rgba(16,185,129,.15);color:var(--success)
+                  {% elif r.status == 'pending' %}background:rgba(245,158,11,.15);color:var(--gold)
+                  {% elif r.status == 'processing' %}background:rgba(37,99,235,.15);color:var(--blue-light)
+                  {% else %}background:rgba(239,68,68,.15);color:var(--danger){% endif %}">
+                  {{ r.get_status_display }}
+                </span>
+              </td>
+              <td style="font-size:.78rem;color:var(--muted)">{{ r.created_at|date:"d M Y" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:3rem;color:var(--muted)">
+        <div style="font-size:3rem;margin-bottom:.75rem">&#128242;</div>
+        <p style="margin:0">No redemptions yet.<br>Start earning and redeem your first airtime!</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Badges Section -->
+{% if badges %}
+<div class="ew-card mb-grid">
+  <div class="ew-card-header">
+    <span class="ew-card-title">&#127885; Your Badges</span>
+    <span style="font-size:.8rem;color:var(--muted)">{{ badges.count }} earned</span>
+  </div>
+  <div class="row g-2">
+    {% for ub in badges %}
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <div class="badge-card" title="{{ ub.badge.description }}">
+        <div class="badge-icon">&#127942;</div>
+        <div class="badge-name">{{ ub.badge.name }}</div>
+        <div class="badge-rarity {{ ub.badge.rarity }}">{{ ub.badge.get_rarity_display }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent Transactions -->
+<div class="ew-card">
+  <div class="ew-card-header">
+    <span class="ew-card-title">&#9889; Recent Transactions</span>
+    <a href="{% url 'dashboard:transactions' %}" class="text-blue" style="font-size:.8rem;font-weight:600">Full History &#8594;</a>
+  </div>
+  {% if transactions %}
+  <div style="overflow-x:auto">
+    <table class="ew-table">
+      <thead><tr><th>Description</th><th>Source</th><th>Points</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr>
+          <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tx.description }}</td>
+          <td>
+            <span style="background:rgba(255,255,255,.06);padding:2px 9px;border-radius:50px;font-size:.72rem;font-weight:600">
+              {{ tx.get_source_display }}
+            </span>
+          </td>
+          <td class="{% if tx.transaction_type == 'credit' %}credit-badge{% else %}debit-badge{% endif %}">
+            {% if tx.transaction_type == 'credit' %}+{% else %}-{% endif %}{{ tx.points|intcomma }} pts
+          </td>
+          <td style="font-size:.78rem;color:var(--muted)">{{ tx.created_at|date:"d M, g:i a" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:2.5rem;color:var(--muted)">
+    <p>No transactions yet. Complete tasks to start earning!</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const userPoints = {{ points }};
+const ptsPerNaira = {{ points_per_naira }};
+const minPts = {{ min_redemption }};
+
+function setAmount(a) {
+  document.getElementById('amountInput').value = a;
+  document.querySelectorAll('.amount-btn').forEach(b => {
+    const isSelected = parseInt(b.dataset.amount) === a;
+    b.classList.toggle('btn-primary-ew', isSelected);
+    b.classList.toggle('btn-outline-ew', !isSelected);
+  });
+  updatePreview(a);
+}
+
+document.getElementById('amountInput').addEventListener('input', e => updatePreview(parseInt(e.target.value) || 0));
+
+function updatePreview(amount) {
+  const pts = amount * ptsPerNaira;
+  const preview = document.getElementById('costPreview');
+  if (pts > 0) {
+    preview.style.display = 'block';
+    document.getElementById('pointsCost').textContent = pts.toLocaleString() + ' pts';
+    const after = userPoints - pts;
+    const afterEl = document.getElementById('balanceAfter');
+    if (after >= 0) {
+      afterEl.textContent = after.toLocaleString() + ' pts';
+      afterEl.style.color = 'var(--success)';
+    } else {
+      afterEl.textContent = '⚠️ Insufficient points';
+      afterEl.style.color = 'var(--danger)';
+    }
+  } else {
+    preview.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

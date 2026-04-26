@@ -1,0 +1,12 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}{{ game.title }} - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div class="page-header"><h1 class="page-title">{{ game.title }}</h1><p class="page-subtitle">{{ game.description }}</p></div>
+<div class="ew-card" style="max-width:600px;text-align:center;padding:3rem">
+  <div style="font-size:4rem;margin-bottom:1rem">🎮</div>
+  <h3 style="font-family:var(--font-display)">{{ game.get_game_type_display }}</h3>
+  <p style="color:var(--muted)">{{ game.instructions }}</p>
+  <p style="color:var(--muted)">Coming soon! Check back for this game type.</p>
+  <a href="{% url 'games:list' %}" class="btn-primary-ew" style="text-decoration:none"><i class="fas fa-arrow-left"></i> Back to Games</a>
+</div>
+{% endblock %}

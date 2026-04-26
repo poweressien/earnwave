@@ -1,0 +1,62 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Referrals{% endblock %}
+{% block content %}
+<div class="page-header"><h1>👥 Referral Program</h1><p>Invite friends and earn points together</p></div>
+<div class="grid-2 mb-4">
+  <div class="points-hero">
+    <div class="points-label">Your Referral Code</div>
+    <div class="referral-code-box mt-2 mb-3">
+      <span class="referral-code" id="refCode">{{ user.referral_code }}</span>
+      <button class="copy-btn" onclick="copyCode()"><i class="fas fa-copy"></i> Copy</button>
+    </div>
+    <div class="text-sm text-muted mb-3">Or share your link:</div>
+    <div style="background:var(--gray-800);border-radius:8px;padding:.6rem .9rem;font-size:.75rem;word-break:break-all;color:var(--blue-400);" id="refLink">{{ referral_link }}</div>
+    <button class="btn btn-primary btn-full mt-3" onclick="copyLink()"><i class="fas fa-share-alt"></i> Share Referral Link</button>
+  </div>
+  <div class="card">
+    <div class="card-header-styled"><h3>How It Works</h3></div>
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center gap-3"><div style="width:32px;height:32px;background:rgba(37,99,235,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">1</div><div class="text-sm">Share your referral code or link with friends</div></div>
+      <div class="flex items-center gap-3"><div style="width:32px;height:32px;background:rgba(37,99,235,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">2</div><div class="text-sm">Friend signs up using your code</div></div>
+      <div class="flex items-center gap-3"><div style="width:32px;height:32px;background:rgba(16,185,129,0.12);border-radius:8px;color:#34D399;display:flex;align-items:center;justify-content:center;"><i class="fas fa-coins"></i></div><div class="text-sm">You earn <strong>100 pts</strong> + they earn <strong>50 pts</strong> instantly!</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;">
+      <div style="text-align:center;"><div class="font-bold text-blue font-display" style="font-size:1.5rem;">{{ total }}</div><div class="text-xs text-muted">Referrals</div></div>
+      <div style="text-align:center;"><div class="font-bold text-green font-display" style="font-size:1.5rem;">{{ rewarded }}</div><div class="text-xs text-muted">Rewarded</div></div>
+      <div style="text-align:center;"><div class="font-bold text-gold font-display" style="font-size:1.5rem;">{{ total_points }}</div><div class="text-xs text-muted">Pts Earned</div></div>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header-styled"><h3>Your Referrals</h3></div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Name</th><th>Status</th><th>Points Earned</th><th>Date</th></tr></thead>
+    <tbody>
+    {% for ref in referrals %}
+    <tr>
+      <td class="font-bold">{{ ref.referred.get_full_name }}</td>
+      <td><span class="badge-pill {% if ref.status == "rewarded" %}badge-green{% elif ref.status == "flagged" %}badge-red{% else %}badge-blue{% endif %}">{{ ref.status|title }}</span></td>
+      <td class="text-green font-bold">{{ ref.inviter_points }} pts</td>
+      <td class="text-muted text-sm">{{ ref.created_at|date:"M d, Y" }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="4" style="text-align:center;padding:2rem;" class="text-muted">No referrals yet. Share your code!</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}
+{% block page_js %}
+<script>
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById("refCode").textContent);
+  showToast("Referral code copied! 🎉","success");
+}
+function copyLink(){
+  navigator.clipboard.writeText(document.getElementById("refLink").textContent);
+  showToast("Referral link copied! Share it with friends","success");
+}
+</script>
+{% endblock %}

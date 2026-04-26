@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Page Not Found - EarnWave{% endblock %}
+{% block body %}
+<div style="min-height:100vh;background:var(--black);display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem">
+  <div>
+    <div style="font-size:6rem;margin-bottom:1rem">🌊</div>
+    <h1 style="font-family:var(--font-display);font-size:5rem;font-weight:800;color:var(--blue);line-height:1">404</h1>
+    <h2 style="font-family:var(--font-display);font-weight:700;margin-bottom:.75rem">Wave Not Found</h2>
+    <p style="color:var(--muted);max-width:360px;margin:0 auto 2rem">The page you're looking for has drifted away. Let's get you back to earning.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a href="/" class="btn-primary-ew" style="text-decoration:none"><i class="fas fa-home"></i> Go Home</a>
+      <a href="{% url 'dashboard:home' %}" class="btn-outline-ew" style="text-decoration:none"><i class="fas fa-th-large"></i> Dashboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

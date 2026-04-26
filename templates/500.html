@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Server Error - EarnWave{% endblock %}
+{% block body %}
+<div style="min-height:100vh;background:var(--black);display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem">
+  <div>
+    <div style="font-size:6rem;margin-bottom:1rem">⚡</div>
+    <h1 style="font-family:var(--font-display);font-size:5rem;font-weight:800;color:var(--danger);line-height:1">500</h1>
+    <h2 style="font-family:var(--font-display);font-weight:700;margin-bottom:.75rem">Something went wrong</h2>
+    <p style="color:var(--muted);max-width:380px;margin:0 auto 2rem">Our team has been notified and we're working on a fix. Your points are safe.</p>
+    <a href="/" class="btn-primary-ew" style="text-decoration:none"><i class="fas fa-home"></i> Return Home</a>
+  </div>
+</div>
+{% endblock %}

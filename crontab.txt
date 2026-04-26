@@ -1,0 +1,11 @@
+# EarnWave Cron Jobs
+# Add these to your server crontab: crontab -e
+
+# Update leaderboard every midnight
+0 0 * * * /path/to/venv/bin/python /path/to/earnwave/manage.py update_leaderboard >> /var/log/earnwave.log 2>&1
+
+# Check and award badges every hour
+0 * * * * /path/to/venv/bin/python /path/to/earnwave/manage.py check_badges >> /var/log/earnwave.log 2>&1
+
+# Collect static files daily (if using whitenoise)
+0 3 * * * /path/to/venv/bin/python /path/to/earnwave/manage.py collectstatic --noinput >> /var/log/earnwave.log 2>&1

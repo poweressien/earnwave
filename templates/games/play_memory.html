@@ -1,0 +1,91 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}{{ game.title }} - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div style="max-width:600px;margin:0 auto">
+  <div class="page-header">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h1 class="page-title">{{ game.title }}</h1>
+        <p class="page-subtitle">Match all pairs to win {{ game.points_reward }} points!</p>
+      </div>
+      <div class="quiz-timer" id="timer">{{ game.time_limit_seconds }}</div>
+    </div>
+    <div class="d-flex gap-3 mt-2">
+      <span style="color:var(--muted);font-size:.875rem">Moves: <strong id="moves" class="text-blue">0</strong></span>
+      <span style="color:var(--muted);font-size:.875rem">Matches: <strong id="matches" class="text-success-ew">0</strong>/8</span>
+    </div>
+  </div>
+  <div class="memory-grid" id="memoryGrid" style="grid-template-columns:repeat(4,1fr)"></div>
+  <div id="gameResult" style="display:none;text-align:center;padding:2rem">
+    <div style="font-size:4rem;margin-bottom:1rem" id="resEmoji">🎉</div>
+    <h2 style="font-family:var(--font-display)" id="resTitle">You Won!</h2>
+    <p style="color:var(--muted)" id="resText"></p>
+    <div class="stat-card blue d-inline-block mt-2 mb-3"><div class="stat-label">Points</div><div class="stat-number" id="resPoints">0</div></div>
+    <br><a href="{% url 'games:list' %}" class="btn-primary-ew" style="text-decoration:none">Play More Games</a>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const emojis = ['🦁','🐯','🐻','🦊','🐸','🦋','🌺','🎯'];
+const allCards = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+let flipped = [], matched = 0, moves = 0, canFlip = true;
+let timeLeft = {{ game.time_limit_seconds }}, timer;
+const sessionId = '{{ session.id }}';
+
+function buildGrid() {
+  const grid = document.getElementById('memoryGrid');
+  allCards.forEach((emoji, i) => {
+    const container = document.createElement('div');
+    container.className = 'memory-card-container';
+    container.dataset.emoji = emoji; container.dataset.index = i;
+    container.innerHTML = `<div class="memory-card-inner"><div class="memory-card-back"><span style="font-size:1.75rem;color:var(--muted)">?</span></div><div class="memory-card-front">${emoji}</div></div>`;
+    container.addEventListener('click', () => flipCard(container));
+    grid.appendChild(container);
+  });
+}
+
+function flipCard(card) {
+  if (!canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  card.classList.add('flipped');
+  flipped.push(card);
+  if (flipped.length === 2) {
+    canFlip = false; moves++;
+    document.getElementById('moves').textContent = moves;
+    if (flipped[0].dataset.emoji === flipped[1].dataset.emoji) {
+      flipped.forEach(c => c.classList.add('matched'));
+      matched++; document.getElementById('matches').textContent = matched;
+      flipped = []; canFlip = true;
+      if (matched === 8) { clearInterval(timer); endGame(true); }
+    } else {
+      setTimeout(() => { flipped.forEach(c => c.classList.remove('flipped')); flipped = []; canFlip = true; }, 1000);
+    }
+  }
+}
+
+function startTimer() {
+  timer = setInterval(() => {
+    timeLeft--;
+    document.getElementById('timer').textContent = timeLeft;
+    if (timeLeft <= 10) document.getElementById('timer').classList.add('danger');
+    if (timeLeft <= 0) { clearInterval(timer); endGame(false); }
+  }, 1000);
+}
+
+function endGame(won) {
+  document.getElementById('memoryGrid').style.display = 'none';
+  document.getElementById('gameResult').style.display = 'block';
+  const pts = won ? {{ game.points_reward }} : Math.floor(matched * {{ game.points_reward }} / 8);
+  document.getElementById('resEmoji').textContent = won ? '🏆' : '⏰';
+  document.getElementById('resTitle').textContent = won ? 'Excellent!' : 'Time\'s Up!';
+  document.getElementById('resText').textContent = won ? `Completed in ${moves} moves!` : `You matched ${matched}/8 pairs.`;
+  document.getElementById('resPoints').textContent = '+' + pts + ' pts';
+  fetch(`/games/session/${sessionId}/complete/`, {
+    method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},
+    body: JSON.stringify({score: matched * 100, won, time_taken: {{ game.time_limit_seconds }} - timeLeft, level: 1})
+  });
+}
+
+buildGrid(); startTimer();
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up - EarnWave{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <div class="auth-bg-glow"></div>
+  <div class="auth-card animate-fade-up" style="max-width:520px">
+    <div class="text-center mb-4">
+      <a href="/" style="font-family:var(--font-display);font-size:1.75rem;font-weight:800;color:var(--white);text-decoration:none">Earn<span style="color:var(--blue)">Wave</span></a>
+      <p class="text-muted-ew mt-1" style="font-size:.9rem">Create your account and start earning airtime today.</p>
+      <div class="hero-badge" style="display:inline-flex;margin-bottom:0">
+        <i class="fas fa-gift"></i> Get 50 free welcome points on signup!
+      </div>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}
+      <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:.75rem 1rem;color:#EF4444;font-size:.875rem;margin-bottom:1rem">
+        <i class="fas fa-exclamation-circle"></i> {{ error }}
+      </div>
+      {% endfor %}
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label-ew">First Name</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}<div class="form-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-6">
+          <label class="form-label-ew">Last Name</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}<div class="form-error">{{ form.last_name.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label-ew">Email Address</label>
+        {{ form.email }}
+        {% if form.email.errors %}<div class="form-error">{{ form.email.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="mb-3">
+        <label class="form-label-ew">Phone Number</label>
+        {{ form.phone_number }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label-ew">Password</label>
+        {{ form.password1 }}
+        {% if form.password1.errors %}<div class="form-error">{{ form.password1.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="mb-3">
+        <label class="form-label-ew">Confirm Password</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}<div class="form-error">{{ form.password2.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="mb-4">
+        <label class="form-label-ew">Referral Code <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+        {{ form.referral_code }}
+      </div>
+      <button type="submit" class="btn-primary-ew w-100" style="justify-content:center">
+        <i class="fas fa-rocket"></i> Create My Account
+      </button>
+      <p style="font-size:.78rem;color:var(--muted);text-align:center;margin-top:1rem">
+        By signing up, you agree to our <a href="/terms/" style="color:var(--blue-light)">Terms</a> and <a href="/privacy/" style="color:var(--blue-light)">Privacy Policy</a>.
+      </p>
+    </form>
+    <div class="divider-text">already have an account?</div>
+    <a href="{% url 'accounts:login' %}" class="btn-outline-ew w-100" style="justify-content:center;text-decoration:none">
+      <i class="fas fa-sign-in-alt"></i> Sign In
+    </a>
+  </div>
+</div>
+{% endblock %}

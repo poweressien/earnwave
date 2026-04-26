@@ -1,0 +1,42 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Surveys - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div class="page-header">
+  <h1 class="page-title">📋 Surveys</h1>
+  <p class="page-subtitle">Complete surveys and earn points. Each survey takes 2–10 minutes.</p>
+</div>
+<div class="row gutter-y">
+  {% for survey in surveys %}
+  <div class="col-md-6 col-xl-4">
+    <div class="task-card h-100 {% if survey.pk|stringformat:'s' in completed_ids|join:',' %}opacity-50{% endif %} {% if survey.is_sponsored %}sponsored{% endif %}">
+      {% if survey.is_sponsored %}
+      <div style="font-size:.7rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">
+        <i class="fas fa-star"></i> Sponsored by {{ survey.sponsor_name }}
+      </div>
+      {% endif %}
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <span class="task-points-badge">+{{ survey.points_reward }} pts</span>
+        <span style="font-size:.75rem;color:var(--muted)"><i class="fas fa-clock"></i> ~{{ survey.estimated_minutes }} min</span>
+      </div>
+      <h5 style="font-family:var(--font-display);font-weight:700;color:var(--white);font-size:1rem;margin-bottom:.5rem">{{ survey.title }}</h5>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">{{ survey.description|truncatechars:100 }}</p>
+      <div class="d-flex align-items-center justify-content-between">
+        <span style="font-size:.75rem;color:var(--muted)">{{ survey.current_responses }}/{{ survey.max_responses }} responses</span>
+        {% if survey.pk|stringformat:'s' in completed_ids %}
+        <span style="color:var(--success);font-size:.85rem;font-weight:600"><i class="fas fa-check"></i> Completed</span>
+        {% else %}
+        <a href="{% url 'surveys:detail' survey.pk %}" class="btn-primary-ew btn-sm-ew" style="text-decoration:none">Take Survey</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5" style="color:var(--muted)">
+    <div style="font-size:4rem;margin-bottom:1rem">📭</div>
+    <h4>No surveys available</h4>
+    <p>Check back soon — new surveys are added regularly.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

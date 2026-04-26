@@ -1,0 +1,361 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Dashboard - EarnWave{% endblock %}
+{% block dashboard_content %}
+
+<!-- Header -->
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <h1 class="page-title">Hey, {{ request.user.first_name }}! 👋</h1>
+      <p class="page-subtitle">Here's your activity overview for today.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="level-badge level-{{ request.user.level|lower }}">
+        <i class="fas fa-star"></i> {{ request.user.level }}
+      </span>
+      <div class="streak-badge">
+        <span class="streak-flame">🔥</span>
+        <div>
+          <div class="streak-count">{{ profile.login_streak }}</div>
+          <div class="streak-label">day streak</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="row gutter-y mb-grid">
+  <div class="col-6 col-xl-3">
+    <div class="stat-card blue animate-fade-up">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div class="stat-label">Points Balance</div>
+          <div class="stat-number" id="balanceNum">{{ points|intcomma }}</div>
+          <small class="text-muted-ew" style="font-size:.78rem">&#8776; &#8358;{{ points|floatformat:0 }} airtime value</small>
+        </div>
+        <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card green animate-fade-up-delay-1">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div class="stat-label">Airtime Earned</div>
+          <div class="stat-number">&#8358;{{ profile.total_airtime_earned|intcomma }}</div>
+          <small class="text-muted-ew" style="font-size:.78rem">Total redeemed</small>
+        </div>
+        <div class="stat-icon green"><i class="fas fa-mobile-alt"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card gold animate-fade-up-delay-2">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div class="stat-label">Tasks Done</div>
+          <div class="stat-number">{{ profile.surveys_completed|add:profile.quizzes_completed|add:profile.games_completed }}</div>
+          <small class="text-muted-ew" style="font-size:.78rem">Surveys · Quizzes · Games</small>
+        </div>
+        <div class="stat-icon gold"><i class="fas fa-check-circle"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card purple animate-fade-up-delay-3">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div class="stat-label">Referrals</div>
+          <div class="stat-number">{{ referral_count }}</div>
+          <small class="text-muted-ew" style="font-size:.78rem">+{{ referral_earnings }} pts earned</small>
+        </div>
+        <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Level Progress + Ad Watch + Leaderboard -->
+<div class="row gutter-y mb-grid">
+  <!-- Level Progress -->
+  <div class="col-lg-4">
+    <div class="ew-card h-100">
+      <div class="ew-card-header">
+        <span class="ew-card-title">Level Progress</span>
+        <span class="level-badge level-{{ request.user.level|lower }}">{{ request.user.level }}</span>
+      </div>
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <small class="text-muted-ew">{{ points|intcomma }} pts</small>
+          <small class="text-muted-ew">
+            {% if level_data.next %}{{ level_data.next }}: {{ level_data.points_to_next|intcomma }} to go{% else %}MAX LEVEL ✨{% endif %}
+          </small>
+        </div>
+        <div class="ew-progress">
+          <div class="ew-progress-fill gold" style="width:{{ level_data.progress }}%" id="levelBar"></div>
+        </div>
+        <small class="text-muted-ew d-block mt-1">{{ level_data.progress }}% to {{ level_data.next|default:"Max Level" }}</small>
+      </div>
+      <div class="streak-badge mb-3">
+        <span class="streak-flame">🔥</span>
+        <div>
+          <div class="streak-count">{{ profile.login_streak }} days</div>
+          <div class="streak-label">Longest: {{ profile.longest_streak }} days</div>
+        </div>
+      </div>
+      <div class="d-grid gap-2">
+        <a href="{% url 'surveys:list' %}" class="btn-primary-ew btn-sm-ew text-center" style="text-decoration:none;justify-content:center">
+          <i class="fas fa-clipboard-list"></i> Take a Survey
+        </a>
+        <a href="{% url 'quizzes:list' %}" class="btn-outline-ew btn-sm-ew text-center" style="text-decoration:none;justify-content:center">
+          <i class="fas fa-brain"></i> Play a Quiz
+        </a>
+        <a href="{% url 'games:list' %}" class="btn-outline-ew btn-sm-ew text-center" style="text-decoration:none;justify-content:center">
+          <i class="fas fa-gamepad"></i> Play a Game
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ad Watch -->
+  <div class="col-lg-4">
+    <div class="ad-watch-card h-100">
+      <h5 style="font-family:var(--font-display);font-weight:700;margin-bottom:.35rem">📺 Watch &amp; Earn</h5>
+      <p class="text-muted-ew" style="font-size:.875rem;margin-bottom:0">Watch a short ad, earn <strong style="color:var(--blue-light)">10 points</strong> instantly. Up to 5 ads per day.</p>
+      <div class="ad-screen" id="adScreen">
+        <div id="adContent" style="text-align:center;padding:1.5rem">
+          <div style="font-size:3rem;margin-bottom:.5rem">📺</div>
+          <p class="text-muted-ew" style="font-size:.82rem;margin:0">Click to watch an ad</p>
+        </div>
+        <div class="ad-progress-bar" id="adProgressBar" style="width:0"></div>
+      </div>
+      <!-- Progress dots -->
+      <div class="ad-dots mb-2">
+        {% for i in "12345"|make_list %}
+        <div class="ad-dot {% if forloop.counter <= profile.ads_watched_today %}active{% endif %}" id="dot{{ forloop.counter }}"></div>
+        {% endfor %}
+      </div>
+      <small class="text-muted-ew d-block mb-2">{{ profile.ads_watched_today }}/5 watched today &nbsp;·&nbsp; Earns <strong class="text-success-ew">10 pts</strong> each</small>
+      <button class="btn-primary-ew w-100" id="watchAdBtn" onclick="watchAd()"
+              {% if profile.ads_watched_today >= 5 %}disabled style="opacity:.5;cursor:not-allowed"{% endif %}>
+        {% if profile.ads_watched_today >= 5 %}
+          <i class="fas fa-ban"></i> Daily Limit Reached
+        {% else %}
+          <i class="fas fa-play"></i> Watch Ad &amp; Earn 10 pts
+        {% endif %}
+      </button>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="col-lg-4">
+    <div class="ew-card h-100">
+      <div class="ew-card-header">
+        <span class="ew-card-title">🏆 Top Earners</span>
+        <a href="{% url 'quizzes:leaderboard' %}" class="text-blue" style="font-size:.8rem;font-weight:600">Full Board</a>
+      </div>
+      {% if leaderboard %}
+        {% for entry in leaderboard %}
+        <div class="leaderboard-row {% if forloop.counter == 1 %}top-1{% elif forloop.counter == 2 %}top-2{% elif forloop.counter == 3 %}top-3{% endif %}">
+          <div class="rank-num {% if forloop.counter == 1 %}r1{% elif forloop.counter == 2 %}r2{% elif forloop.counter == 3 %}r3{% endif %}">
+            {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.875rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              {{ entry.user.get_full_name }}
+            </div>
+            <div style="font-size:.75rem;color:var(--muted)">{{ entry.points|intcomma }} pts</div>
+          </div>
+          <span class="level-badge level-{{ entry.user.level|lower }}" style="font-size:.65rem">{{ entry.user.level }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div style="text-align:center;padding:2.5rem 1rem;color:var(--muted)">
+        <div style="font-size:2.5rem;margin-bottom:.75rem">🏆</div>
+        <p style="font-size:.875rem;margin:0">Complete tasks to climb the leaderboard!</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Available Surveys + Recent Activity -->
+<div class="row gutter-y mb-grid">
+  <div class="col-lg-7">
+    <div class="ew-card">
+      <div class="ew-card-header">
+        <span class="ew-card-title">📋 Available Surveys</span>
+        <a href="{% url 'surveys:list' %}" class="text-blue" style="font-size:.8rem;font-weight:600">View All →</a>
+      </div>
+      {% if available_surveys %}
+        {% for survey in available_surveys %}
+        <a href="{% url 'surveys:detail' survey.pk %}" style="text-decoration:none">
+          <div class="task-card mb-2 {% if survey.is_sponsored %}sponsored{% endif %}">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <div style="flex:1;min-width:0">
+                {% if survey.is_sponsored %}
+                <div style="font-size:.7rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.15rem">
+                  ⭐ Sponsored · {{ survey.sponsor_name }}
+                </div>
+                {% endif %}
+                <div style="font-weight:600;font-size:.9rem;color:var(--white)">{{ survey.title }}</div>
+                <div class="task-meta mt-1">
+                  <i class="fas fa-clock"></i> ~{{ survey.estimated_minutes }} min &nbsp;&middot;&nbsp;
+                  {{ survey.get_category_display }}
+                </div>
+              </div>
+              <span class="task-points-badge flex-shrink-0">+{{ survey.points_reward }} pts</span>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:2.5rem;color:var(--muted)">
+          <div style="font-size:2.5rem;margin-bottom:.5rem">📭</div>
+          <p style="font-size:.875rem;margin:0">No surveys right now. Check back soon!</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="ew-card">
+      <div class="ew-card-header">
+        <span class="ew-card-title">⚡ Recent Activity</span>
+        <a href="{% url 'dashboard:transactions' %}" class="text-blue" style="font-size:.8rem;font-weight:600">All History →</a>
+      </div>
+      {% if recent_transactions %}
+        {% for tx in recent_transactions %}
+        <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid var(--dark-border)">
+          <div style="flex:1;min-width:0;margin-right:.75rem">
+            <div style="font-size:.83rem;font-weight:500;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              {{ tx.description }}
+            </div>
+            <div style="font-size:.73rem;color:var(--muted)">{{ tx.created_at|timesince }} ago</div>
+          </div>
+          <div class="{% if tx.transaction_type == 'credit' %}credit-badge{% else %}debit-badge{% endif %}" style="font-size:.875rem;white-space:nowrap">
+            {% if tx.transaction_type == 'credit' %}+{% else %}-{% endif %}{{ tx.points }} pts
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:2.5rem;color:var(--muted)">
+          <div style="font-size:2.5rem;margin-bottom:.5rem">🌊</div>
+          <p style="font-size:.875rem;margin:0">No activity yet. Start earning!</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Badges + Referral CTA -->
+<div class="row gutter-y">
+  {% if user_badges %}
+  <div class="col-lg-8">
+    <div class="ew-card">
+      <div class="ew-card-header">
+        <span class="ew-card-title">🏅 Your Badges</span>
+        <a href="{% url 'accounts:profile' %}" class="text-blue" style="font-size:.8rem;font-weight:600">View All</a>
+      </div>
+      <div class="row g-2">
+        {% for ub in user_badges %}
+        <div class="col-4 col-sm-3 col-md-2">
+          <div class="badge-card" title="{{ ub.badge.description }}">
+            <div class="badge-icon">🏆</div>
+            <div class="badge-name">{{ ub.badge.name }}</div>
+            <div class="badge-rarity {{ ub.badge.rarity }}">{{ ub.badge.get_rarity_display }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="col-lg-{% if user_badges %}4{% else %}12{% endif %}">
+    <div style="background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(124,58,237,.1));border:1px solid rgba(37,99,235,.25);border-radius:var(--radius-lg);padding:1.5rem;height:100%;display:flex;flex-direction:column;justify-content:center">
+      <div style="font-size:2rem;margin-bottom:.75rem">👥</div>
+      <h5 style="font-family:var(--font-display);font-weight:700;margin-bottom:.35rem">Refer &amp; Earn</h5>
+      <p style="color:var(--muted);font-size:.875rem;margin-bottom:1rem">Share your code and earn <strong class="text-blue">100 pts</strong> per friend who joins.</p>
+      <div style="background:rgba(0,0,0,.3);border:1px solid rgba(37,99,235,.2);border-radius:8px;padding:.6rem .9rem;font-family:monospace;font-size:.9rem;color:var(--blue-light);letter-spacing:.05em;margin-bottom:.75rem">
+        {{ request.user.referral_code }}
+      </div>
+      <a href="{% url 'referrals:home' %}" class="btn-primary-ew btn-sm-ew" style="text-decoration:none;justify-content:center">
+        <i class="fas fa-share-alt"></i> Share Your Link
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let adWatching = false;
+let adsWatched = {{ profile.ads_watched_today }};
+
+function watchAd() {
+  if (adWatching || adsWatched >= 5) return;
+  adWatching = true;
+  const btn = document.getElementById('watchAdBtn');
+  const screen = document.getElementById('adContent');
+  const bar = document.getElementById('adProgressBar');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+  screen.innerHTML = '<div style="text-align:center;padding:1.5rem"><div style="font-size:2.5rem;margin-bottom:.5rem">🎬</div><p style="color:var(--blue-light);font-weight:600;font-size:.9rem;margin:0">Ad is playing...</p><p style="font-size:.75rem;color:var(--muted);margin:.25rem 0 0">Please wait 5 seconds</p></div>';
+
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += 2;
+    bar.style.width = progress + '%';
+    if (progress >= 100) {
+      clearInterval(interval);
+      fetch('{% url "rewards:watch_ad" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' },
+        body: '{}'
+      }).then(r => r.json()).then(data => {
+        adWatching = false;
+        bar.style.width = '0';
+
+        if (data.success) {
+          adsWatched++;
+          // Update dot
+          const dot = document.getElementById('dot' + adsWatched);
+          if (dot) dot.classList.add('active');
+
+          screen.innerHTML = `<div style="text-align:center;padding:1.5rem"><div style="font-size:2.5rem;margin-bottom:.35rem">🎉</div><p style="color:var(--success);font-weight:800;font-size:1.5rem;margin:0">+${data.points} pts!</p></div>`;
+          showToast('Points Earned!', `+${data.points} points from watching an ad.`, 'success');
+
+          document.querySelector('.ad-screen + small, #adScreen + * + small, .ad-watch-card small').textContent = `${adsWatched}/5 watched today · Earns 10 pts each`;
+
+          if (adsWatched >= 5) {
+            btn.innerHTML = '<i class="fas fa-ban"></i> Daily Limit Reached';
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+          } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play"></i> Watch Another Ad';
+          }
+          setTimeout(() => {
+            screen.innerHTML = '<div style="text-align:center;padding:1.5rem"><div style="font-size:3rem;margin-bottom:.5rem">📺</div><p class="text-muted-ew" style="font-size:.82rem;margin:0">Click to watch an ad</p></div>';
+          }, 3000);
+        } else {
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+          btn.innerHTML = '<i class="fas fa-ban"></i> ' + (data.error || 'Limit reached');
+          screen.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted)"><p style="margin:0;font-size:.875rem">Daily limit reached. Come back tomorrow!</p></div>';
+        }
+      }).catch(() => {
+        adWatching = false;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-play"></i> Watch Ad & Earn 10 pts';
+      });
+    }
+  }, 100);
+}
+</script>
+{% endblock %}

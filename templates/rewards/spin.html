@@ -1,0 +1,195 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Daily Spin - EarnWave{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+  <h1 class="page-title">🎡 Daily Spin Wheel</h1>
+  <p class="page-subtitle">Spin once every 24 hours for a chance to win bonus points!</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="ew-card text-center" style="padding:2.5rem">
+
+      {% if already_spun %}
+      <!-- Already spun today -->
+      <div style="padding:2rem 0">
+        <div style="font-size:4rem;margin-bottom:1rem">⏰</div>
+        <h3 style="font-family:var(--font-display);font-weight:700;margin-bottom:.5rem">Come Back Tomorrow!</h3>
+        <p style="color:var(--muted);margin-bottom:1.5rem">You already spun today. Your next spin resets at midnight.</p>
+        <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;padding:1rem;display:inline-block;margin-bottom:1.5rem">
+          <div style="font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Last Win</div>
+          <div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display);color:var(--blue-light);margin-top:.25rem">
+            {% if last_spin %}+{{ last_spin.points_won }} pts — {{ last_spin.label }}{% else %}—{% endif %}
+          </div>
+        </div>
+        <br>
+        <a href="{% url 'dashboard:home' %}" class="btn-primary-ew" style="text-decoration:none">
+          <i class="fas fa-th-large"></i> Back to Dashboard
+        </a>
+      </div>
+
+      {% else %}
+      <!-- Spin Wheel Canvas -->
+      <div style="margin-bottom:1.5rem">
+        <div style="font-size:.85rem;color:var(--muted);margin-bottom:.5rem">Prizes available today:</div>
+        <div class="d-flex gap-2 justify-content-center flex-wrap" id="prizeList">
+          {% for seg in segments %}
+          <span style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:50px;padding:4px 12px;font-size:.78rem;font-weight:600;color:{% if seg.points > 0 %}var(--blue-light){% else %}var(--muted){% endif %}">
+            {% if seg.points > 0 %}+{{ seg.points }} pts{% else %}Try Again{% endif %}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Wheel -->
+      <div style="position:relative;width:300px;height:300px;margin:0 auto 1.5rem">
+        <!-- Pointer -->
+        <div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);z-index:10;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:28px solid var(--blue);filter:drop-shadow(0 2px 8px rgba(37,99,235,.5))"></div>
+        <canvas id="wheelCanvas" width="300" height="300" style="border-radius:50%;cursor:pointer;border:4px solid var(--dark-border);box-shadow:0 0 40px rgba(37,99,235,.2)"></canvas>
+        <!-- Center button -->
+        <div id="spinCenter" onclick="doSpin()" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:var(--blue);border:4px solid var(--off-black);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.7rem;font-weight:800;color:white;letter-spacing:.03em;z-index:10;transition:all .2s;box-shadow:0 0 20px rgba(37,99,235,.5)">SPIN</div>
+      </div>
+
+      <button class="btn-primary-ew" id="spinBtn" onclick="doSpin()" style="font-size:1rem;padding:.85rem 3rem">
+        <i class="fas fa-dharmachakra"></i> Spin Now!
+      </button>
+      <p style="color:var(--muted);font-size:.78rem;margin-top:.75rem">1 free spin per day &nbsp;·&nbsp; Resets at midnight</p>
+
+      <!-- Result overlay -->
+      <div id="spinResult" style="display:none;margin-top:1.5rem;padding:1.5rem;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:var(--radius-lg)">
+        <div style="font-size:3rem;margin-bottom:.5rem" id="resultEmoji">🎉</div>
+        <h3 style="font-family:var(--font-display);font-weight:800;font-size:1.5rem" id="resultTitle">You Won!</h3>
+        <p style="color:var(--muted);margin:.25rem 0 1rem" id="resultMsg"></p>
+        <a href="{% url 'rewards:home' %}" class="btn-primary-ew" style="text-decoration:none"><i class="fas fa-coins"></i> View Balance</a>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- History -->
+    {% if spin_history %}
+    <div class="ew-card mt-3">
+      <div class="ew-card-header"><span class="ew-card-title">📅 Spin History</span></div>
+      {% for h in spin_history %}
+      <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid var(--dark-border)">
+        <span style="font-size:.875rem;color:var(--muted)">{{ h.spun_at|date:"d M Y, g:i a" }}</span>
+        <span style="font-weight:700;color:{% if h.points_won > 0 %}var(--success){% else %}var(--muted){% endif %}">
+          {% if h.points_won > 0 %}+{{ h.points_won }} pts{% else %}No prize{% endif %}
+          &nbsp;—&nbsp; <small>{{ h.label }}</small>
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const SEGMENTS = {{ segments_json|safe }};
+const COLORS = ['#2563EB','#1d4ed8','#7C3AED','#6d28d9','#10B981','#059669','#F59E0B','#d97706'];
+let spinning = false;
+let currentAngle = 0;
+
+function drawWheel(angle) {
+  const canvas = document.getElementById('wheelCanvas');
+  const ctx = canvas.getContext('2d');
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 4;
+  const arc = (2 * Math.PI) / SEGMENTS.length;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  SEGMENTS.forEach((seg, i) => {
+    const start = angle + i * arc;
+    const end = start + arc;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = COLORS[i % COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle = '#0A0A0F';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Label
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + arc / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 11px "DM Sans", sans-serif';
+    ctx.fillText(seg.points > 0 ? '+' + seg.points + ' pts' : seg.label, r - 12, 4);
+    ctx.restore();
+  });
+}
+
+drawWheel(0);
+
+function doSpin() {
+  if (spinning) return;
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('spinBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Spinning...';
+  document.getElementById('spinCenter').style.transform = 'translate(-50%,-50%) scale(.9)';
+
+  fetch('{% url "rewards:spin" %}', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' },
+    body: '{}'
+  }).then(r => r.json()).then(data => {
+    if (!data.success) {
+      spinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      document.getElementById('spinBtn').innerHTML = '<i class="fas fa-dharmachakra"></i> Spin Now!';
+      showToast('Already Spun', data.error, 'info');
+      return;
+    }
+
+    // Animate to winning segment
+    const arc = (2 * Math.PI) / SEGMENTS.length;
+    const targetAngle = -(data.segment_index * arc) - (arc / 2) + (Math.PI / 2);
+    const spins = 5 + Math.random() * 3; // 5-8 full rotations
+    const finalAngle = targetAngle - (spins * 2 * Math.PI);
+    const duration = 4000;
+    const startTime = performance.now();
+    const startAngle = currentAngle;
+
+    function animate(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      currentAngle = startAngle + (finalAngle - startAngle) * eased;
+      drawWheel(currentAngle);
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // Done spinning
+        spinning = false;
+        document.getElementById('spinCenter').style.transform = 'translate(-50%,-50%)';
+        const resultEl = document.getElementById('spinResult');
+        resultEl.style.display = 'block';
+        resultEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (data.points > 0) {
+          document.getElementById('resultEmoji').textContent = '🎉';
+          document.getElementById('resultTitle').textContent = 'You Won ' + data.points + ' Points!';
+          document.getElementById('resultMsg').textContent = data.label + ' — Added to your balance!';
+          showToast('Spin Win!', '+' + data.points + ' points added!', 'success');
+        } else {
+          document.getElementById('resultEmoji').textContent = '😅';
+          document.getElementById('resultTitle').textContent = 'Better Luck Tomorrow!';
+          document.getElementById('resultMsg').textContent = 'Come back tomorrow for another spin.';
+        }
+        document.getElementById('spinBtn').style.display = 'none';
+      }
+    }
+    requestAnimationFrame(animate);
+  }).catch(() => {
+    spinning = false;
+    document.getElementById('spinBtn').disabled = false;
+    document.getElementById('spinBtn').innerHTML = '<i class="fas fa-dharmachakra"></i> Spin Now!';
+  });
+}
+</script>
+{% endblock %}

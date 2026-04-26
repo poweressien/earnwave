@@ -1,0 +1,17 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Survey Complete!{% endblock %}
+{% block content %}
+<div style="max-width:500px;margin:4rem auto;text-align:center;">
+  <div style="font-size:4rem;margin-bottom:1rem;animation:fadeInUp .5s ease;">🎉</div>
+  <h1 class="mb-2">Survey Complete!</h1>
+  <p class="text-muted mb-4">You earned {{ response_obj.points_awarded }} points for completing "{{ survey.title }}"</p>
+  <div class="card mb-4" style="display:inline-block;padding:1.5rem 3rem;">
+    <div class="points-label">Points Earned</div>
+    <div class="points-balance text-green">+{{ response_obj.points_awarded }}</div>
+  </div>
+  <div class="flex gap-2 justify-center">
+    <a href="{% url "surveys:list" %}" class="btn btn-outline">More Surveys</a>
+    <a href="{% url "dashboard:home" %}" class="btn btn-primary">Dashboard</a>
+  </div>
+</div>
+{% endblock %}

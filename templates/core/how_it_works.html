@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}How It Works - EarnWave{% endblock %}
+{% block body %}
+<nav class="earnwave-nav">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between">
+      <a href="/" class="nav-brand">Earn<span>Wave</span></a>
+      <a href="{% url 'accounts:signup' %}" class="btn-nav-cta">Get Started Free</a>
+    </div>
+  </div>
+</nav>
+<div style="background:var(--black);min-height:100vh;padding:4rem 0">
+  <div class="container" style="max-width:860px">
+    <div class="text-center mb-5">
+      <div class="hero-badge" style="display:inline-flex;margin-bottom:1rem"><i class="fas fa-map"></i> Platform Guide</div>
+      <h1 style="font-family:var(--font-display);font-size:clamp(2rem,5vw,3.2rem);font-weight:800;letter-spacing:-.02em">How EarnWave Works</h1>
+      <p style="color:var(--muted);font-size:1.05rem;max-width:520px;margin:1rem auto 0">Everything you need to know about earning airtime on EarnWave.</p>
+    </div>
+
+    <!-- Step by step -->
+    <div class="row g-4 mb-5">
+      {% for step in "1234"|make_list %}
+      <div class="col-md-6">
+        <div class="feature-card">
+          {% if step == "1" %}
+          <div class="feature-icon">&#128272;</div>
+          <h3 class="feature-title">1. Sign Up Free</h3>
+          <p class="feature-text">Create your account in under 30 seconds with your email. Get 50 welcome points the moment you join. No credit card, no hidden fees.</p>
+          {% elif step == "2" %}
+          <div class="feature-icon">&#9889;</div>
+          <h3 class="feature-title">2. Earn Points</h3>
+          <p class="feature-text">Complete surveys (30–500 pts), answer quiz questions (10–20 pts each), play brain games, watch ads (10 pts), or refer friends (100 pts each).</p>
+          {% elif step == "3" %}
+          <div class="feature-icon">&#128176;</div>
+          <h3 class="feature-title">3. Accumulate Balance</h3>
+          <p class="feature-text">Watch your points balance grow in your dashboard. Level up from Bronze to Platinum for bonus multipliers. Daily streaks give extra rewards.</p>
+          {% elif step == "4" %}
+          <div class="feature-icon">&#128241;</div>
+          <h3 class="feature-title">4. Redeem Airtime</h3>
+          <p class="feature-text">Convert points to airtime: 100 points = &#8358;1. Choose MTN, Airtel, Glo or 9mobile. Minimum &#8358;10 (1,000 pts). Processed within 24 hours.</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Earning table -->
+    <div class="ew-card mb-4">
+      <div class="ew-card-header"><span class="ew-card-title">&#128203; Points Earning Table</span></div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">
+              <th style="padding:.6rem .75rem;text-align:left">Activity</th>
+              <th style="padding:.6rem .75rem;text-align:right">Points</th>
+              <th style="padding:.6rem .75rem;text-align:right">Frequency</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in "1234567"|make_list %}
+            <tr style="border-top:1px solid var(--dark-border)">
+              {% if row == "1" %}<td style="padding:.75rem">&#128272; Signup Bonus</td><td style="padding:.75rem;text-align:right;color:var(--success);font-weight:700">50 pts</td><td style="padding:.75rem;text-align:right;color:var(--muted);font-size:.85rem">Once</td>
+              {% elif row == "2" %}<td style="padding:.75rem">&#128203; Complete Survey</td><td style="padding:.75rem;text-align:right;color:var(--success);font-weight:700">30–500 pts</td><td style="padding:.75rem;text-align:right;color:var(--muted);font-size:.85rem">Per survey</td>
+              {% elif row == "3" %}<td style="padding:.75rem">&#129504; Quiz Correct Answer</td><td style="padding:.75rem;text-align:right;color:var(--success);font-weight:700">10–20 pts</td><td style="padding:.75rem;text-align:right;color:var(--muted);font-size:.85rem">Per correct</td>
+              {% elif row == "4" %}<td style="padding:.75rem">&#127918; Brain Game</td><td style="padding:.75rem;text-align:right;color:var(--success);font-weight:700">20–50 pts</td><td style="padding:.75rem;text-align:right;color:var(--muted);font-size:.85rem">Per game</td>
+              {% elif row == "5" %}<td style="padding:.75rem">&#128250; Watch Ad</td><td style="padding:.75rem;text-align:right;color:var(--success);font-weight:700">10 pts</td><td style="padding:.75rem;text-align:right;color:var(--muted);font-size:.85rem">5× daily</td>
+              {% elif row == "6" %}<td style="padding:.75rem">&#128101; Refer a Friend</td><td style="padding:.75rem;text-align:right;color:var(--success);font-weight:700">100 pts</td><td style="padding:.75rem;text-align:right;color:var(--muted);font-size:.85rem">Per signup</td>
+              {% elif row == "7" %}<td style="padding:.75rem">&#128293; Daily Login Streak</td><td style="padding:.75rem;text-align:right;color:var(--success);font-weight:700">5–50 pts</td><td style="padding:.75rem;text-align:right;color:var(--muted);font-size:.85rem">Daily</td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Conversion table -->
+    <div class="ew-card mb-5">
+      <div class="ew-card-header"><span class="ew-card-title">&#9889; Points to Airtime Conversion</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;padding:.5rem 0">
+        {% for item in "1234"|make_list %}
+        <div style="text-align:center;padding:1rem;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.15);border-radius:12px">
+          {% if item == "1" %}<div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display);color:var(--blue-light)">1,000</div><div style="font-size:.8rem;color:var(--muted)">pts = &#8358;10</div>
+          {% elif item == "2" %}<div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display);color:var(--blue-light)">5,000</div><div style="font-size:.8rem;color:var(--muted)">pts = &#8358;50</div>
+          {% elif item == "3" %}<div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display);color:var(--blue-light)">10,000</div><div style="font-size:.8rem;color:var(--muted)">pts = &#8358;100</div>
+          {% elif item == "4" %}<div style="font-size:1.5rem;font-weight:800;font-family:var(--font-display);color:var(--blue-light)">50,000</div><div style="font-size:.8rem;color:var(--muted)">pts = &#8358;500</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <small style="color:var(--muted);display:block;margin-top:.75rem">Rate: 100 points = &#8358;1. Minimum redemption: 1,000 points.</small>
+    </div>
+
+    <div class="text-center">
+      <a href="{% url 'accounts:signup' %}" class="btn-primary-ew" style="font-size:1rem;padding:.85rem 2.5rem;text-decoration:none">
+        <i class="fas fa-rocket"></i> Start Earning Now &mdash; It's Free
+      </a>
+      <p style="color:var(--muted);font-size:.8rem;margin-top:1rem">No hidden fees &middot; No credit card &middot; Instant signup</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Referrals - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div class="page-header">
+  <h1 class="page-title">👥 Referral Program</h1>
+  <p class="page-subtitle">Invite friends and earn {{ inviter_bonus }} points per successful referral.</p>
+</div>
+<div class="row gutter-y mb-grid">
+  <div class="col-lg-7">
+    <div class="ew-card">
+      <div class="ew-card-header"><span class="ew-card-title">Your Referral Link</span></div>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:1rem">Share this link with friends. You earn <strong class="text-blue">{{ inviter_bonus }} points</strong> and they get <strong class="text-success-ew">{{ invitee_bonus }} bonus points</strong> when they sign up.</p>
+      <div class="referral-link-box mb-3">
+        <span id="refLink">{{ referral_url }}</span>
+        <button class="copy-btn" onclick="copyLink()"><i class="fas fa-copy"></i> Copy</button>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="https://wa.me/?text=Join%20EarnWave%20and%20earn%20free%20airtime!%20{{ referral_url|urlencode }}" target="_blank" class="btn-outline-ew btn-sm-ew" style="text-decoration:none">
+          <i class="fab fa-whatsapp"></i> Share on WhatsApp
+        </a>
+        <a href="https://t.me/share/url?url={{ referral_url|urlencode }}&text=Join%20EarnWave%20-%20Earn%20Free%20Airtime!" target="_blank" class="btn-outline-ew btn-sm-ew" style="text-decoration:none">
+          <i class="fab fa-telegram"></i> Share on Telegram
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="ew-card">
+      <div class="ew-card-header"><span class="ew-card-title">Referral Stats</span></div>
+      <div class="referral-stat-grid">
+        <div class="referral-stat"><div class="referral-stat-num">{{ referrals.count }}</div><div class="referral-stat-lbl">Total Invited</div></div>
+        <div class="referral-stat"><div class="referral-stat-num">{{ referrals|length }}</div><div class="referral-stat-lbl">Joined</div></div>
+        <div class="referral-stat"><div class="referral-stat-num">{{ total_earned }}</div><div class="referral-stat-lbl">Pts Earned</div></div>
+      </div>
+      <div style="margin-top:1rem;padding:.75rem;background:rgba(37,99,235,.08);border-radius:10px;text-align:center">
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.25rem">Your Referral Code</div>
+        <div style="font-family:monospace;font-size:1.4rem;font-weight:800;color:var(--blue-light);letter-spacing:.1em">{{ request.user.referral_code }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if referrals %}
+<div class="ew-card">
+  <div class="ew-card-header"><span class="ew-card-title">Referral History</span></div>
+  <div style="overflow-x:auto">
+    <table class="ew-table">
+      <thead><tr><th>User</th><th>Status</th><th>Points Earned</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for ref in referrals %}
+        <tr>
+          <td><strong>{{ ref.referred.get_full_name }}</strong><br><small class="text-muted-ew">{{ ref.referred.email }}</small></td>
+          <td>
+            <span style="padding:3px 10px;border-radius:50px;font-size:.75rem;font-weight:700;
+              {% if ref.status == 'rewarded' %}background:rgba(16,185,129,.15);color:var(--success)
+              {% elif ref.status == 'pending' %}background:rgba(245,158,11,.15);color:var(--gold)
+              {% else %}background:rgba(255,255,255,.08);color:var(--muted){% endif %}">
+              {{ ref.get_status_display }}
+            </span>
+          </td>
+          <td class="credit-badge">+{{ ref.inviter_points }} pts</td>
+          <td style="font-size:.8rem;color:var(--muted)">{{ ref.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+function copyLink() {
+  const text = document.getElementById('refLink').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    btn.style.background = 'var(--success)'; btn.style.color = 'white';
+    setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; btn.style.background = ''; btn.style.color = ''; }, 2000);
+  });
+}
+</script>
+{% endblock %}

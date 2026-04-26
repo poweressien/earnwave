@@ -1,0 +1,128 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}{{ game.title }} - EarnWave{% endblock %}
+{% block dashboard_content %}
+<div style="max-width:560px;margin:0 auto">
+  <div class="page-header">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h1 class="page-title">{{ game.title }}</h1>
+        <p class="page-subtitle">Find the pattern. Pick the missing piece.</p>
+      </div>
+      <div class="quiz-timer" id="timer">{{ game.time_limit_seconds }}</div>
+    </div>
+    <div class="d-flex gap-2 mt-2">
+      <span style="color:var(--muted);font-size:.875rem">Level: <strong id="level" class="text-gold">1</strong></span>
+      <span style="color:var(--muted);font-size:.875rem">Score: <strong id="score" class="text-blue">0</strong></span>
+    </div>
+  </div>
+
+  <div id="gameArea">
+    <div class="quiz-question">
+      <p style="color:var(--muted);font-size:.875rem;margin-bottom:1rem">What comes next in the sequence?</p>
+      <div id="sequence" style="display:flex;align-items:center;justify-content:center;gap:12px;font-size:2rem;margin-bottom:2rem;flex-wrap:wrap"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem" id="choices"></div>
+    </div>
+    <div style="text-align:center;margin-top:1rem;min-height:2rem" id="feedback"></div>
+  </div>
+
+  <div id="gameResult" style="display:none;text-align:center;padding:3rem">
+    <div style="font-size:4rem;margin-bottom:1rem">🧩</div>
+    <h2 style="font-family:var(--font-display)">Logic Challenge Complete!</h2>
+    <p style="color:var(--muted);margin:.5rem 0 1.5rem" id="resText"></p>
+    <div class="stat-card blue d-inline-block mb-3"><div class="stat-label">Points</div><div class="stat-number" id="resPoints">0</div></div>
+    <br><a href="{% url 'games:list' %}" class="btn-primary-ew" style="text-decoration:none">Play More</a>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const SESSION_ID = '{{ session.id }}';
+const TOTAL_TIME = {{ game.time_limit_seconds }};
+let timeLeft = TOTAL_TIME, score = 0, level = 1, timer;
+
+const puzzles = [
+  { seq: ['2','4','6','8','?'], answer: '10', choices: ['9','10','12','11'], hint: '+2 each time' },
+  { seq: ['1','4','9','16','?'], answer: '25', choices: ['20','25','24','21'], hint: 'Square numbers' },
+  { seq: ['🔴','🔵','🔴','🔵','?'], answer: '🔴', choices: ['🔴','🔵','🟡','🟢'], hint: 'Alternating colors' },
+  { seq: ['A','C','E','G','?'], answer: 'I', choices: ['H','I','J','K'], hint: 'Skip a letter' },
+  { seq: ['1','2','4','8','?'], answer: '16', choices: ['12','14','16','18'], hint: 'Doubles each time' },
+  { seq: ['🌙','⭐','🌙','⭐','🌙','?'], answer: '⭐', choices: ['🌙','⭐','☀️','🌟'], hint: 'Alternating pattern' },
+  { seq: ['3','6','12','24','?'], answer: '48', choices: ['36','42','48','50'], hint: 'Multiplied by 2' },
+  { seq: ['Z','Y','X','W','?'], answer: 'V', choices: ['U','V','T','S'], hint: 'Backwards alphabet' },
+  { seq: ['1','1','2','3','5','?'], answer: '8', choices: ['6','7','8','9'], hint: 'Fibonacci sequence' },
+  { seq: ['🍎','🍊','🍋','🍇','?'], answer: '🍓', choices: ['🍓','🍑','🥝','🍒'], hint: 'Common fruits sequence' },
+];
+
+let currentPuzzle = 0;
+
+function loadPuzzle() {
+  if (currentPuzzle >= puzzles.length) { endGame(); return; }
+  const p = puzzles[currentPuzzle];
+  const seqEl = document.getElementById('sequence');
+  seqEl.innerHTML = '';
+  p.seq.forEach(item => {
+    const box = document.createElement('div');
+    box.style.cssText = 'min-width:48px;height:56px;background:var(--dark-card);border:2px solid var(--dark-border);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;font-family:var(--font-display);color:' + (item==='?' ? 'var(--blue)' : 'var(--white)') + ';border-color:' + (item==='?' ? 'var(--blue)' : 'var(--dark-border)');
+    box.textContent = item;
+    seqEl.appendChild(box);
+  });
+
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  p.choices.sort(() => Math.random() - 0.5).forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.style.cssText = 'font-size:1.5rem;justify-content:center;font-family:var(--font-display);font-weight:800';
+    btn.textContent = c;
+    btn.onclick = () => checkAnswer(btn, c, p.answer);
+    choicesEl.appendChild(btn);
+  });
+  document.getElementById('feedback').innerHTML = `<small style="color:var(--muted)">💡 Hint: ${p.hint}</small>`;
+}
+
+function checkAnswer(btn, chosen, correct) {
+  document.querySelectorAll('#choices .quiz-option').forEach(b => b.onclick = null);
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    score++; level++;
+    document.getElementById('score').textContent = score;
+    document.getElementById('level').textContent = level;
+    document.getElementById('feedback').innerHTML = '<span style="color:var(--success);font-weight:700">✓ Correct! Next puzzle...</span>';
+    currentPuzzle++;
+    setTimeout(loadPuzzle, 1000);
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#choices .quiz-option').forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
+    document.getElementById('feedback').innerHTML = `<span style="color:var(--danger);font-weight:700">✗ The answer was ${correct}</span>`;
+    currentPuzzle++;
+    setTimeout(loadPuzzle, 1500);
+  }
+}
+
+function endGame() {
+  clearInterval(timer);
+  document.getElementById('gameArea').style.display = 'none';
+  document.getElementById('gameResult').style.display = 'block';
+  const pts = Math.round(score / puzzles.length * {{ game.points_reward }});
+  document.getElementById('resText').textContent = `You solved ${score} of ${puzzles.length} logic puzzles.`;
+  document.getElementById('resPoints').textContent = '+' + pts;
+  fetch(`/games/session/${SESSION_ID}/complete/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+    body: JSON.stringify({ score, won: score >= 7, time_taken: TOTAL_TIME - timeLeft, level: score })
+  });
+}
+
+function startTimer() {
+  timer = setInterval(() => {
+    timeLeft--;
+    document.getElementById('timer').textContent = timeLeft;
+    if (timeLeft <= 20) document.getElementById('timer').classList.add('danger');
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+}
+
+loadPuzzle();
+startTimer();
+</script>
+{% endblock %}
