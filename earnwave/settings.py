@@ -1,22 +1,13 @@
-"""
-EarnWave Settings — works locally (SQLite) and on Railway (PostgreSQL)
-"""
 import os
 from pathlib import Path
-from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ── SECURITY ──────────────────────────────────────────────────────────────────
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-earnwave-local-dev-key-2024')
-DEBUG = config('DEBUG', default=True, cast=bool)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-earnwave-local-dev-key-2024')
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-# Accept localhost + any Railway subdomain automatically
-_ALLOWED = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0')
-ALLOWED_HOSTS = [h.strip() for h in _ALLOWED.split(',') if h.strip()]
-ALLOWED_HOSTS += ['.railway.app', '.up.railway.app']  # catch all Railway URLs
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '.railway.app', '.up.railway.app']
 
-# ── APPS ──────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -71,8 +62,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'earnwave.wsgi.application'
 
-# ── DATABASE ──────────────────────────────────────────────────────────────────
-DATABASE_URL = config('DATABASE_URL', default=None)
+DATABASE_URL = os.environ.get('DATABASE_URL', None)
 
 if DATABASE_URL:
     import dj_database_url
@@ -85,7 +75,6 @@ else:
         }
     }
 
-# ── AUTH ──────────────────────────────────────────────────────────────────────
 AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
@@ -96,13 +85,11 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
 ]
 
-# ── LOCALISATION ──────────────────────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Africa/Lagos'
 USE_I18N = True
 USE_TZ = True
 
-# ── STATIC & MEDIA ────────────────────────────────────────────────────────────
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
@@ -110,26 +97,22 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ── MISC ──────────────────────────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
-# ── EMAIL ─────────────────────────────────────────────────────────────────────
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='EarnWave <noreply@earnwave.ng>')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = 'EarnWave <noreply@earnwave.ng>'
 
-# ── PAYSTACK ──────────────────────────────────────────────────────────────────
-PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY', default='sk_test_your_key')
-PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY', default='pk_test_your_key')
+PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', 'sk_test_your_key')
+PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', 'pk_test_your_key')
 PAYSTACK_BASE_URL = 'https://api.paystack.co'
 
-# ── PLATFORM CONFIG ───────────────────────────────────────────────────────────
 PLATFORM_NAME = 'EarnWave'
 PLATFORM_TAGLINE = 'Earn Airtime. Play. Win. Repeat.'
 POINTS_PER_NAIRA = 100
@@ -141,11 +124,13 @@ DAILY_AD_LIMIT = 5
 AD_WATCH_POINTS = 10
 LEVEL_THRESHOLDS = {'Bronze': 0, 'Silver': 1000, 'Gold': 5000, 'Platinum': 15000}
 
-# ── CSRF ──────────────────────────────────────────────────────────────────────
-_CSRF = config('CSRF_TRUSTED_ORIGINS', default='http://localhost,http://127.0.0.1')
-CSRF_TRUSTED_ORIGINS = [h.strip() for h in _CSRF.split(',') if h.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost',
+    'http://127.0.0.1',
+    'https://*.railway.app',
+    'https://*.up.railway.app',
+]
 
-# ── PRODUCTION SECURITY ───────────────────────────────────────────────────────
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
@@ -156,7 +141,6 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     X_FRAME_OPTIONS = 'DENY'
 
-# ── CACHE ─────────────────────────────────────────────────────────────────────
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
