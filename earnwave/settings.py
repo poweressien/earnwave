@@ -127,8 +127,7 @@ LEVEL_THRESHOLDS = {'Bronze': 0, 'Silver': 1000, 'Gold': 5000, 'Platinum': 15000
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'http://127.0.0.1',
-    'https://*.railway.app',
-    'https://*.up.railway.app',
+    'https://web-production-60c89.up.railway.app',
 ]
 
 if not DEBUG:
